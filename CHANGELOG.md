@@ -21,6 +21,9 @@ The format will be:
 ### Fixed
 - Fixed an issue where the executable would instantly close on exit or errors by trapping all termination signals and adding a final terminal-lock prompt.
 
+### Security
+- Switched client identity generation from deterministic UUIDv5 to random UUIDv4, preventing identity prediction, tracking, and unauthorized session key spoofing.
+
 ### Documentation
 - Updated the formatting of the `README.md` file.
 

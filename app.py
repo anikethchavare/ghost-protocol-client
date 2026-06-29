@@ -36,7 +36,6 @@ from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # Constants
-UUID_NAMESPACE = uuid.NAMESPACE_DNS
 SERVER_URL = "https://ghost-protocol.anikethchavare.com/generate-token"
 
 # State & Encryption Keys
@@ -245,7 +244,7 @@ async def main():
 
     if room_decision == "create":
         room_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-        print(f"\n{Style.DIM}UNIQUE ROOM ID: {room_id}{Style.RESET_ALL}")
+        print(f"\n{Style.DIM}ROOM ID: {room_id}{Style.RESET_ALL}")
 
         session_key = AESGCM.generate_key(bit_length=256)
     elif room_decision == "join":
@@ -256,12 +255,12 @@ async def main():
         print(f"{Fore.RED}[!] ACCESS DENIED: Room ID is required and must be exactly 8 characters.{Style.RESET_ALL}")
         return
 
-    # Generating the Unique Client ID (UUID v5)
+    # Generating the Client ID (UUID v4)
     username = username.replace(" ", "-")
-    client_id = str(uuid.uuid5(UUID_NAMESPACE, username))
+    client_id = str(uuid.uuid4())
 
-    print(f"{Style.DIM}UNIQUE CLIENT ID (UUID): {client_id}{Style.RESET_ALL}")
-    print(f"{Style.DIM}UNIQUE SHORT CLIENT ID (UUID): {client_id.split('-')[4]}{Style.RESET_ALL}")
+    print(f"{Style.DIM}SHORT CLIENT ID: {client_id.split('-')[4]}{Style.RESET_ALL}")
+    print(f"{Style.DIM}CLIENT ID: {client_id}{Style.RESET_ALL}")
     print(f"\n{Fore.YELLOW}[*] Requesting authentication token and establishing connection...{Style.RESET_ALL}")
 
     # Nested Async Function 1: Get Token Request
@@ -308,7 +307,7 @@ async def main():
                     return
 
             # Checkin if Username is Taken
-            if any(member.client_id == client_id for member in presence_members):
+            if any(member.data == username for member in presence_members):
                 print(f"\n{Fore.RED}[!] ACCESS DENIED: Username taken by another member.{Style.RESET_ALL}")
                 return
 
