@@ -3,7 +3,7 @@
 
 <br>
 
-<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/9baf2979-f190-4dc2-a643-a43a3466d446"></div>
+<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/b848b2aa-5c0a-43ff-b35e-d9dff691a687"></div>
 
 <br>
 
@@ -32,9 +32,8 @@ This release is a highly functional demonstration of asynchronous E2EE communica
 
 ### Known Limitations (Fixes slated for v1.0.0):
 1. **No Forward Secrecy:** Room session keys are static per session lifecycle and do not rotate when members leave or join.
-2. **Deterministic Identities:** User IDs are generated via UUIDv5 on the client side, which lacks a central server-side authority validation.
-3. **Replay Attacks:** Message payloads currently lack temporal validations like sequence numbers or expiration timestamps.
-4. **Handshake Race Conditions:** Multiple active peers will simultaneously attempt to fulfill a newcomer's session key request.
+2. **Replay Attacks:** Message payloads currently lack temporal validations like sequence numbers or expiration timestamps.
+3. **Handshake Race Conditions:** Multiple active peers will simultaneously attempt to fulfill a newcomer's session key request.
 
 *Do not use this version to transmit highly sensitive information or real production secrets.*
 
@@ -44,11 +43,12 @@ This release is a highly functional demonstration of asynchronous E2EE communica
 
 This lightweight CLI script serves as the interactive frontend interface for the **Ghost Protocol** room-based chat application.
 
-1. **End-to-End Encryption:** Uses modern, industry-standard cryptographic primitives featuring `X25519` for peer-to-peer key handshakes, `HKDF` for ephemeral key derivation, and `AES-256-GCM` for authenticated data packet encryption.
-2. **Real-Time Mesh Pub/Sub:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently.
-3. **Asynchronous UX Loop:** Engineered entirely around `asyncio` events, wrapping standard blocking input routines with an executor loop so messages flow inbound smoothly without locking your input stream.
-4. **Dynamic Terminal UI:** Enhanced with `colorama` ANSI styling formatting to visually segment message streams, system connection alerts, and server-side room presence activities seamlessly inside your shell.
-5. **Token Auth Integration:** Seamlessly talks back to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions.
+1. **End-to-End Encryption & Secure Identity:** Uses modern, industry-standard cryptographic primitives featuring `X25519` for peer-to-peer key handshakes, `HKDF` for ephemeral key derivation, and `AES-256-GCM` for authenticated data packet encryption.
+2. **Randomized Client Identities:** Hardened against user tracking and session spoofing by leveraging completely unpredictable `UUIDv4` identifiers for runtime identity generation instead of deterministic values.
+3. **Real-Time Mesh Pub/Sub:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently.
+4. **Asynchronous UX Loop:** Engineered entirely around `asyncio` events, wrapping standard blocking input routines with an executor loop so messages flow inbound smoothly without locking your input stream.
+5. **Dynamic Terminal UI:** Enhanced with `colorama` ANSI styling formatting to visually segment message streams, system connection alerts, and server-side room presence activities seamlessly inside your shell.
+6. **Token Auth Integration:** Seamlessly talks back to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions.
 
 <hr>
 

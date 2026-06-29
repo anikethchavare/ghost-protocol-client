@@ -25,7 +25,7 @@ The format will be:
 - Switched client identity generation from deterministic UUIDv5 to random UUIDv4, preventing identity prediction, tracking, and unauthorized session key spoofing.
 
 ### Documentation
-- Updated the formatting of the `README.md` file.
+- Updated the formatting and content of the `README.md` file.
 
 ## [0.1.0] - 2026-06-29
 
