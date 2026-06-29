@@ -18,6 +18,9 @@ The format will be:
 
 ## [Unreleased]
 
+### Fixed
+- Fixed an issue where the executable would instantly close on exit or errors by trapping all termination signals and adding a final terminal-lock prompt.
+
 ### Documentation
 - Updated the formatting of the `README.md` file.
 

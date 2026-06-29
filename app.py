@@ -370,6 +370,8 @@ async def main():
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except KeyboardInterrupt:
-        print(f"\n{Fore.RED}[!] EXECUTION ABORTED")
+    except (Exception, KeyboardInterrupt, asyncio.CancelledError):
+        print(f"\n\n{Fore.RED}[!] EXECUTION ABORTED{Style.RESET_ALL}")
+    finally:
+        input(f"\nProcess finished. Press ENTER to close the terminal.{Style.RESET_ALL}")
         sys.exit(0)
