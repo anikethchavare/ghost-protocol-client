@@ -3,7 +3,7 @@
 
 <br>
 
-<div align="center"><img width="750" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/9baf2979-f190-4dc2-a643-a43a3466d446"></div>
+<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/9baf2979-f190-4dc2-a643-a43a3466d446"></div>
 
 <br>
 
@@ -31,10 +31,10 @@
 This release is a highly functional demonstration of asynchronous E2EE communication over a real-time pub/sub network. It is **not** currently audited or hardened for production environments.
 
 ### Known Limitations (Fixes slated for v1.0.0):
-- **No Forward Secrecy:** Room session keys are static per session lifecycle and do not rotate when members leave or join.
-- **Deterministic Identities:** User IDs are generated via UUIDv5 on the client side, which lacks a central server-side authority validation.
-- **Replay Attacks:** Message payloads currently lack temporal validations like sequence numbers or expiration timestamps.
-- **Handshake Race Conditions:** Multiple active peers will simultaneously attempt to fulfill a newcomer's session key request.
+1. **No Forward Secrecy:** Room session keys are static per session lifecycle and do not rotate when members leave or join.
+2. **Deterministic Identities:** User IDs are generated via UUIDv5 on the client side, which lacks a central server-side authority validation.
+3. **Replay Attacks:** Message payloads currently lack temporal validations like sequence numbers or expiration timestamps.
+4. **Handshake Race Conditions:** Multiple active peers will simultaneously attempt to fulfill a newcomer's session key request.
 
 *Do not use this version to transmit highly sensitive information or real production secrets.*
 

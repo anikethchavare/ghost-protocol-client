@@ -16,6 +16,11 @@ The format will be:
 - Performance
 - Documentation
 
+## [Unreleased]
+
+### Documentation
+- Updated the formatting of the `README.md` file.
+
 ## [0.1.0] - 2026-06-29
 
 ### Added
