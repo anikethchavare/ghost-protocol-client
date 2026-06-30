@@ -25,6 +25,7 @@ The format will be:
 
 ### Security
 - Mitigated replay attacks across chat sessions by embedding and validating an encrypted temporal context timestamp on all messages.
+- Hardened metadata privacy by encrypting the full JSON payload (message, username, and client ID) as a single broadcast block.
 
 ### Refactored
 - Modularized the codebase by decoupling core cryptography and terminal utilities into dedicated modules for improved readability and maintenance.

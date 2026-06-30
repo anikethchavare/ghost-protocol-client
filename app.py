@@ -24,6 +24,7 @@ import os
 import sys
 import uuid
 import time
+import json
 import httpx
 import random
 import string
@@ -121,38 +122,39 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                 }))
         elif message.name == "message":
             payload = message.data
-            sender_username = payload.get("username")
-            sender_id = payload.get("client_id")
 
-            if sender_username != username:
-                if session_key is not None:
-                    try:
-                        # Decrypting the Message & Extracting Timestamp
-                        raw_payload = b64decode(payload.get("message").encode("utf-8"))
-                        decrypted_message = encryption.decrypt_message(key=session_key, nonce=raw_payload[:12], data=raw_payload[12:]).decode("utf-8")
+            if session_key is not None:
+                try:
+                    # Decrypting Payload & Extracting Information
+                    raw_payload = b64decode(payload.get("encrypted_payload").encode("utf-8"))
+                    decrypted_payload = json.loads(encryption.decrypt_message(key=session_key, nonce=raw_payload[:12], data=raw_payload[12:]).decode("utf-8"))
 
-                        timestamp_str = decrypted_message.split(":")[0]
-                        decrypted_message = decrypted_message.split(":")[1]
+                    sender_username = decrypted_payload.get("username")
+                    decrypted_message = decrypted_payload.get("message")
+                    timestamp_str = decrypted_payload.get("timestamp")
 
-                        if not timestamp_str or not decrypted_message:
-                            print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Received malformed message payload.{Style.RESET_ALL}")
-                            return
+                    if sender_username == username:
+                        return
 
-                        if abs(time.time() - float(timestamp_str)) > MAX_REPLAY_WINDOW:
-                            print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Rejected message from {sender_username} due to replay.{Style.RESET_ALL}")
-                            if is_app_ready:
-                                print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}", end="", flush=True)
-                            return
+                    if not timestamp_str or not decrypted_message:
+                        print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Received malformed message payload.{Style.RESET_ALL}")
+                        return
 
-                        print(f"\r\033[K{Fore.CYAN}[{sender_username}@{sender_id.split('-')[4]}]: {Fore.WHITE}{decrypted_message}{Style.RESET_ALL}")
+                    if abs(time.time() - float(timestamp_str)) > MAX_REPLAY_WINDOW:
+                        print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Rejected message from {sender_username} due to replay.{Style.RESET_ALL}")
                         if is_app_ready:
                             print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}", end="", flush=True)
+                        return
 
-                        last_event_was_presence = False
-                    except Exception:
-                        print(f"\r\033[K{Fore.RED}[!] ENCRYPTION FAILURE: Failed to decrypt incoming payload.{Style.RESET_ALL}")
-                else:
-                    print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Awaiting session key verification...{Style.RESET_ALL}")
+                    print(f"\r\033[K{Fore.CYAN}[{sender_username}@{decrypted_payload.get("client_id").split('-')[4]}]: {Fore.WHITE}{decrypted_message}{Style.RESET_ALL}")
+                    if is_app_ready:
+                        print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}", end="", flush=True)
+
+                    last_event_was_presence = False
+                except Exception:
+                    print(f"\r\033[K{Fore.RED}[!] ENCRYPTION FAILURE: Failed to decrypt incoming payload.{Style.RESET_ALL}")
+            else:
+                print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Awaiting session key verification...{Style.RESET_ALL}")
 
     await channel.subscribe(listener)
 
@@ -209,18 +211,24 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
             last_event_was_presence = False
 
             if session_key is not None:
-                # Encrypting the Message
+                # Assembling the Payload
+                payload = json.dumps({
+                    "timestamp": str(time.time()),
+                    "client_id": channel.ably.options.client_id,
+                    "username": username,
+                    "message": message_text
+                }).encode("utf-8")
+
+                # Encrypting the Data
                 nonce = os.urandom(12)
-                encrypted_message = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=f"{str(time.time())}:{message_text}".encode("utf-8"))).decode("utf-8")
+                encrypted_payload = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=payload)).decode("utf-8")
             else:
                 print(f"{Fore.RED}[!] TRANSMISSION FAILURE: Cryptographic handshake is not established.{Style.RESET_ALL}")
                 continue
 
-            # Channel Publish (message): Sending Message
+            # Channel Publish (message): Sending Encrypted Payload
             await channel.publish("message", {
-                "client_id": channel.ably.options.client_id,
-                "username": username,
-                "message": encrypted_message
+                "encrypted_payload": encrypted_payload
             })
         except Exception as e:
             print(f"\n{Fore.RED}[!] TRANSMISSION FAILURE: {e}")
