@@ -23,6 +23,9 @@ The format will be:
 - Integrated a sleek, stealth-themed `ghost` application icon into the final build configurations.
 - Added a dedicated `/icons` directory featuring three distinct style variations for compilation: `icon-green.ico`, `icon-blue.ico`, and `icon-grey.ico`.
 
+### Changed
+- Added a new dependency `orjson`.
+
 ### Security
 - Mitigated replay attacks across chat sessions by embedding and validating an encrypted temporal context timestamp on all messages.
 - Hardened metadata privacy by encrypting the full JSON payload (message, username, and client ID) as a single broadcast block.
