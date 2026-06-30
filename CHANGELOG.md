@@ -20,6 +20,7 @@ The format will be:
 
 ### Changed
 - Modified the alert message when a user leaves a room.
+- Added a dependency `pyinstaller`.
 
 ### Fixed
 - Fixed an issue where the executable would instantly close on exit or errors by trapping all termination signals and adding a final terminal-lock prompt.

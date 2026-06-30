@@ -1,4 +1,5 @@
 ably==3.1.2
 httpx==0.28.1
 colorama==0.4.6
+pyinstaller==6.21.0
 cryptography==49.0.0
