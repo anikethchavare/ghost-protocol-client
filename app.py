@@ -17,6 +17,8 @@ limitations under the License.
 """
 
 # Imports
+from modules import utils
+
 import os
 import sys
 import uuid
@@ -36,6 +38,7 @@ from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # Constants
+APP_VERSION = "v0.2.0"
 SERVER_URL = "https://ghost-protocol.anikethchavare.com/generate-token"
 
 # State & Encryption Keys
@@ -224,9 +227,12 @@ async def main():
     global session_key
     room_id = None
 
+    # Set the Custom Terminal Title
+    utils.set_terminal_title()
+
     # Displaying Initial Messages
     print(f"{Fore.GREEN}{Style.BRIGHT}=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ==={Style.RESET_ALL}")
-    print(f"{Style.DIM}Status: CLEAR // Protocol: Ghost-E2EE // Version: v0.2.0{Style.RESET_ALL}")
+    print(f"{Style.DIM}Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}{Style.RESET_ALL}")
     print(f"{Fore.RED}[!] WARNING: Do not use for production or highly sensitive data.{Style.RESET_ALL}")
 
     # Prompting User for Username & Room ID

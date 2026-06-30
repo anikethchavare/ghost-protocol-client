@@ -16,6 +16,11 @@ The format will be:
 - Performance
 - Documentation
 
+## [Unreleased]
+
+### Added
+- Added a custom terminal title via the `set_terminal_title()` function in `modules/utils.py`.
+
 ## [0.2.0] - 2026-06-30
 
 ### Changed
