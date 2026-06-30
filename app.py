@@ -24,8 +24,8 @@ import os
 import sys
 import uuid
 import time
-import json
 import httpx
+import orjson
 import random
 import string
 import asyncio
@@ -127,7 +127,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                 try:
                     # Decrypting Payload & Extracting Information
                     raw_payload = b64decode(payload.get("encrypted_payload").encode("utf-8"))
-                    decrypted_payload = json.loads(encryption.decrypt_message(key=session_key, nonce=raw_payload[:12], data=raw_payload[12:]).decode("utf-8"))
+                    decrypted_payload = orjson.loads(encryption.decrypt_message(key=session_key, nonce=raw_payload[:12], data=raw_payload[12:]))
 
                     sender_username = decrypted_payload.get("username")
                     decrypted_message = decrypted_payload.get("message")
@@ -212,12 +212,12 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
 
             if session_key is not None:
                 # Assembling the Payload
-                payload = json.dumps({
+                payload = orjson.dumps({
                     "timestamp": str(time.time()),
                     "client_id": channel.ably.options.client_id,
                     "username": username,
                     "message": message_text
-                }).encode("utf-8")
+                })
 
                 # Encrypting the Data
                 nonce = os.urandom(12)

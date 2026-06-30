@@ -30,6 +30,9 @@ The format will be:
 ### Refactored
 - Modularized the codebase by decoupling core cryptography and terminal utilities into dedicated modules for improved readability and maintenance.
 
+### Performance
+- Utilized `orjson` instead of `json` for loading and dumping JSON.
+
 ### Documentation
 - Updated the content of the `README.md` file with the new build instructions.
 
