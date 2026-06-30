@@ -18,24 +18,20 @@ limitations under the License.
 
 # Imports
 from modules import utils
+from modules import encryption
 
 import os
 import sys
 import uuid
 import httpx
-import base64
 import random
 import string
 import asyncio
+from base64 import b64encode, b64decode
 from colorama import init, Fore, Back, Style
 
 from ably import AblyRealtime
 from ably.types.presence import PresenceAction
-
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives.asymmetric import x25519
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # Constants
 APP_VERSION = "v0.2.0"
@@ -46,20 +42,25 @@ is_app_ready = False
 last_event_was_presence = True
 
 session_key = None
-local_private_key = x25519.X25519PrivateKey.generate()
-local_public_key = local_private_key.public_key()
+local_public_key, local_private_key = encryption.generate_key_pair()
 
 # Initializing Colorama
 init()
 
 # Async Function 1: Presence Handler
 async def presence_handler(channel, username: str, short_client_id: str):
-    """ Listens for members entering or leaving the room-based channel. """
+    """
+    Listens for members entering or leaving the room-based channel.
+
+    Args:
+        channel: The channel to listen for.
+        username (String): The username of the member.
+        short_client_id (String): The last part of the client's ID (UUID v4).
+    """
 
     # Nested Function 1: Presence Listener
     def presence_listener(member):
         global last_event_was_presence
-
         sender_id = member.client_id
         sender_username = member.data
 
@@ -68,6 +69,7 @@ async def presence_handler(channel, username: str, short_client_id: str):
 
         prefix = "\r\033[K" if last_event_was_presence else "\r\033[K\n"
 
+        # Displays Message According to Action
         if member.action == PresenceAction.ENTER:
             print(f"{prefix}{Fore.YELLOW}[*] MEMBER JOINED: {sender_username}@{sender_id.split('-')[4]} has entered the room.{Style.RESET_ALL}\n")
             if is_app_ready:
@@ -81,9 +83,16 @@ async def presence_handler(channel, username: str, short_client_id: str):
 
     await channel.presence.subscribe(presence_listener)
 
-# Async Function 2: Receive Message Handler
+# Async Function 2: Receive Messages Handler
 async def receive_messages_handler(channel, username: str, short_client_id: str):
-    """ Listens for incoming messages on the room-based channel. """
+    """
+    Listens for incoming messages on the room-based channel.
+
+    Args:
+        channel: The channel to listen for.
+        username (String): The username of the member.
+        short_client_id (String): The last part of the client's ID (UUID v4).
+    """
 
     # Nested Function 1: Listener
     def listener(message):
@@ -91,31 +100,22 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
 
         if message.name == "key_request" and session_key is not None:
             payload = message.data
-            newcomer_id = payload.get("client_id")
+            new_member_client_id = payload.get("client_id")
 
-            if newcomer_id != channel.ably.options.client_id:
-                # Fetching Public Key from New Member
-                peer_public_key = x25519.X25519PublicKey.from_public_bytes(base64.b64decode(payload.get("public_key")))
-                shared_secret = local_private_key.exchange(peer_public_key)
-
-                derived_wrapper_key = HKDF(
-                    algorithm=hashes.SHA256(),
-                    length=32,
-                    salt=None,
-                    info=b"ghost-protocol-handshake"
-                ).derive(shared_secret)
-
-                wrapper_cipher = AESGCM(derived_wrapper_key)
+            if new_member_client_id != channel.ably.options.client_id:
+                # Encrypting Session Key & Sending it to New Member
                 handshake_nonce = os.urandom(12)
-                encrypted_session_key = wrapper_cipher.encrypt(handshake_nonce, session_key, None)
+                encrypted_session_key = encryption.encrypt_message(
+                    key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(b64decode(payload.get("public_key"))))),
+                    nonce=handshake_nonce,
+                    data=session_key
+                )
 
-                our_public_encoded = base64.b64encode(local_public_key.public_bytes_raw()).decode("utf-8")
-
-                # Sending Session Key to New Member
-                asyncio.create_task(channel.publish(f"key_delivery:{newcomer_id}", {
-                    "sender_public_key": our_public_encoded,
-                    "nonce": base64.b64encode(handshake_nonce).decode('utf-8'),
-                    "encrypted_session_key": base64.b64encode(encrypted_session_key).decode('utf-8')
+                # Channel Publish (key_delivery): Sending Session Key to New Member
+                asyncio.create_task(channel.publish(f"key_delivery:{new_member_client_id}", {
+                    "sender_public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8"),
+                    "nonce": b64encode(handshake_nonce).decode('utf-8'),
+                    "encrypted_session_key": b64encode(encrypted_session_key).decode('utf-8')
                 }))
         elif message.name == "message":
             payload = message.data
@@ -126,12 +126,8 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                 if session_key is not None:
                     try:
                         # Decrypting the Message
-                        raw_payload = base64.b64decode(payload.get("message").encode('utf-8'))
-                        nonce = raw_payload[:12]
-                        ciphertext = raw_payload[12:]
-
-                        aes_gcm = AESGCM(session_key)
-                        decrypted_message = aes_gcm.decrypt(nonce, ciphertext,None).decode('utf-8')
+                        raw_payload = b64decode(payload.get("message").encode('utf-8'))
+                        decrypted_message = encryption.decrypt_message(key=session_key, nonce=raw_payload[:12], data=raw_payload[12:]).decode("utf-8")
 
                         print(f"\r\033[K{Fore.CYAN}[{sender_username}@{sender_id.split('-')[4]}]: {Fore.WHITE}{decrypted_message}{Style.RESET_ALL}")
                         if is_app_ready:
@@ -153,22 +149,11 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
             return
 
         payload = message.data
-        peer_public_bytes = base64.b64decode(payload.get("sender_public_key"))
-        nonce = base64.b64decode(payload.get("nonce"))
-        encrypted_session_key = base64.b64decode(payload.get("encrypted_session_key"))
-
-        sender_public_key = x25519.X25519PublicKey.from_public_bytes(peer_public_bytes)
-        shared_secret = local_private_key.exchange(sender_public_key)
-
-        derived_wrapper_key = HKDF(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=None,
-            info=b"ghost-protocol-handshake",
-        ).derive(shared_secret)
-
-        wrapper_cipher = AESGCM(derived_wrapper_key)
-        session_key = wrapper_cipher.decrypt(nonce, encrypted_session_key, None)
+        session_key = encryption.decrypt_message(
+            key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(b64decode(payload.get("sender_public_key"))))),
+            nonce=b64decode(payload.get("nonce")),
+            data=b64decode(payload.get("encrypted_session_key"))
+        )
 
         print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Session key securely established.{Style.RESET_ALL}")
         if is_app_ready:
@@ -176,17 +161,23 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
 
     await channel.subscribe(f"key_delivery:{channel.ably.options.client_id}", delivery_listener)
 
-# Async Function 3: Send Message Handler
+# Async Function 3: Send Messages Handler
 async def send_messages_handler(channel, username: str, short_client_id: str):
-    """ Handles user terminal input and publishes messages in the room-based channel. """
+    """
+    Handles user terminal input and publishes messages in the room-based channel.
+
+    Args:
+        channel: The channel to listen for.
+        username (String): The username of the member.
+        short_client_id (String): The last part of the client's ID (UUID v4).
+    """
 
     global last_event_was_presence
     loop = asyncio.get_event_loop()
 
     while True:
         try:
-            prompt = f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}"
-            message_text = await loop.run_in_executor(None, input, prompt)
+            message_text = await loop.run_in_executor(None, input,f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}")
         except (asyncio.CancelledError, KeyboardInterrupt):
             break
 
@@ -203,32 +194,29 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
             last_event_was_presence = False
 
             if session_key is not None:
-                # Encrypting the Message using AES-256 (GCM)
-                aes_gcm = AESGCM(session_key)
+                # Encrypting the Message
                 nonce = os.urandom(12)
-                ciphertext = aes_gcm.encrypt(nonce, message_text.encode("utf-8"),None)
-                encoded_payload = base64.b64encode(nonce + ciphertext).decode("utf-8")
+                encrypted_message = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=message_text.encode("utf-8"))).decode("utf-8")
             else:
                 print(f"{Fore.RED}[!] TRANSMISSION FAILURE: Cryptographic handshake is not established.{Style.RESET_ALL}")
                 continue
 
-            payload = {
+            # Channel Publish (message): Sending Message
+            await channel.publish("message", {
                 "client_id": channel.ably.options.client_id,
                 "username": username,
-                "message": encoded_payload
-            }
-
-            await channel.publish("message", payload)
+                "message": encrypted_message
+            })
         except Exception as e:
             print(f"\n{Fore.RED}[!] TRANSMISSION FAILURE: {e}")
 
 # Async Function 4: Main
 async def main():
-    global session_key
+    global session_key, is_app_ready
     room_id = None
 
     # Set the Custom Terminal Title
-    utils.set_terminal_title()
+    utils.set_terminal_title(APP_VERSION)
 
     # Displaying Initial Messages
     print(f"{Fore.GREEN}{Style.BRIGHT}=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ==={Style.RESET_ALL}")
@@ -252,7 +240,7 @@ async def main():
         room_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         print(f"\n{Style.DIM}ROOM ID: {room_id}{Style.RESET_ALL}")
 
-        session_key = AESGCM.generate_key(bit_length=256)
+        session_key = encryption.generate_key(length=256)
     elif room_decision == "join":
         room_id = input(f"{Fore.CYAN}ROOM ID: {Fore.WHITE}").strip(); print(Style.RESET_ALL, end="")
         print()
@@ -271,12 +259,10 @@ async def main():
 
     # Nested Async Function 1: Get Token Request
     async def get_token_request(*args, **kwargs):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient() as request_client:
             try:
-                response = await client.post(SERVER_URL, json={"client_id": client_id, "room_id": room_id})
-
-                if response.status_code != 200:
-                    raise Exception(f"ServerError: Server rejected hand-shake: {response.status_code}")
+                response = await request_client.post(SERVER_URL, json={"client_id": client_id, "room_id": room_id})
+                response.raise_for_status()
 
                 return response.json()
             except Exception as e:
@@ -288,8 +274,7 @@ async def main():
         await client.connection.once_async("connected")
 
         # Mapping Channel Name to the Capability Filter
-        channel_name = f"room:{room_id}"
-        channel = client.channels.get(channel_name)
+        channel = client.channels.get(f"room:{room_id}")
 
         # Establish Concurrent Streaming Tasks for Sending & Receiving Data
         presence_task = None
@@ -312,7 +297,7 @@ async def main():
                     print(f"\n{Fore.RED}[!] ACCESS DENIED: Room ID does not exist.{Style.RESET_ALL}")
                     return
 
-            # Checkin if Username is Taken
+            # Checking if Username is Taken
             if any(member.data == username for member in presence_members):
                 print(f"\n{Fore.RED}[!] ACCESS DENIED: Username taken by another member.{Style.RESET_ALL}")
                 return
@@ -325,9 +310,10 @@ async def main():
 
             # Initializing the Cryptographic Handshake
             if room_decision == "join":
-                await channel.publish("key_request",{
+                # Channel Publish (key_request): Requesting Members for Session Key
+                await channel.publish("key_request", {
                     "client_id": client_id,
-                    "public_key": base64.b64encode(local_public_key.public_bytes_raw()).decode("utf-8")
+                    "public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8")
                 })
 
             # Displaying Connection Messages
@@ -336,7 +322,6 @@ async def main():
             print()
 
             # Signaling the App is Ready
-            global is_app_ready
             is_app_ready = True
 
             # Setting the Send Messages Handler

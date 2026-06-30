@@ -23,6 +23,9 @@ The format will be:
 - Integrated a sleek, stealth-themed `ghost` application icon into the final build configurations.
 - Added a dedicated `/icons` directory featuring three distinct style variations for compilation: `icon-green.ico`, `icon-blue.ico`, and `icon-grey.ico`.
 
+### Refactored
+- Modularized the codebase by decoupling core cryptography and terminal utilities into dedicated modules for improved readability and maintenance.
+
 ### Documentation
 - Updated the content of the `README.md` file with the new build instructions.
 
