@@ -20,6 +20,11 @@ The format will be:
 
 ### Added
 - Added a custom terminal title via the `set_terminal_title()` function in `modules/utils.py`.
+- Integrated a sleek, stealth-themed `ghost` application icon into the final build configurations.
+- Added a dedicated `/icons` directory featuring three distinct style variations for compilation: `icon-green.ico`, `icon-blue.ico`, and `icon-grey.ico`.
+
+### Documentation
+- Updated the content of the `README.md` file with the new build instructions.
 
 ## [0.2.0] - 2026-06-30
 

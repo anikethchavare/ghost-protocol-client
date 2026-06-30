@@ -63,10 +63,10 @@ We provide a standalone executable configuration pre-compiled for easy execution
 1. **Locate the Executable:** Open the root directory of the project and navigate to the `/dist` folder.
 2. **Execute:** Double-click `ghost-protocol.exe` (on Windows) or execute it via your shell to launch the application instantly.
 
-*Note: If you want to build the latest changes into a single executable manually, install the dependencies and run the compilation script below from the repository root:*
+*Note: If you want to build the latest changes into a single executable manually, install the dependencies and run the compilation script below from the repository root. You can choose your preferred visual theme by swapping out the icon name placeholder with `icon-green.ico`, `icon-blue.ico`, or `icon-grey.ico` from the `icons/` directory:*
 
 ```bash
-pyinstaller --onefile --console --name ghost-protocol app.py
+pyinstaller --onefile --console --name ghost-protocol --icon=icons/<icon-name>.ico app.py
 ```
 
 ### 💻 Option B: Local Development & Execution
