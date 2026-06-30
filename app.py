@@ -362,7 +362,7 @@ async def main():
                     pass
 
                 # Displaying Connection Termination Messages
-                print(f"\n\n\n\033[A\r\033[K{Fore.YELLOW}[*] Disconnecting user from Room {room_id}...{Style.RESET_ALL}")
+                print(f"\n\n\n\033[A\r\033[K{Fore.YELLOW}[*] Terminating active session in room {room_id}...{Style.RESET_ALL}")
                 print(f"\n{Fore.BLACK}{Back.RED}[!] SECURE CONNECTION TERMINATED{Style.RESET_ALL}")
 
 # Running the Application

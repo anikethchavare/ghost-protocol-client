@@ -18,6 +18,9 @@ The format will be:
 
 ## [Unreleased]
 
+### Changed
+- Modified the alert message when a user leaves a room.
+
 ### Fixed
 - Fixed an issue where the executable would instantly close on exit or errors by trapping all termination signals and adding a final terminal-lock prompt.
 
