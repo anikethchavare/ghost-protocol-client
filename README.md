@@ -54,7 +54,22 @@ This lightweight CLI script serves as the interactive frontend interface for the
 
 ## 3. 🚦 Getting Started
 
-### 💻 Local Development & Execution
+You can run **Ghost Protocol** either as a compiled standalone executable or directly via the raw Python source code.
+
+### 📦 Option A: Compiled Executable (Recommended for Quick Run)
+
+We provide a standalone executable configuration pre-compiled for easy execution without needing a local Python environment setup.
+
+1. **Locate the Executable:** Open the root directory of the project and navigate to the `/dist` folder.
+2. **Execute:** Double-click `ghost-protocol.exe` (on Windows) or execute it via your shell to launch the application instantly.
+
+*Note: If you want to build the latest changes into a single executable manually, install the dependencies and run the compilation script below from the repository root:*
+
+```bash
+pyinstaller --onefile --console --name ghost-protocol app.py
+```
+
+### 💻 Option B: Local Development & Execution
 
 Ensure you have **Python 3.10+** installed on your machine.
 
@@ -73,6 +88,7 @@ Ensure you have **Python 3.10+** installed on your machine.
     ```
 
 3.  **Launch**:
+
     ```bash
     python app.py
     ```
