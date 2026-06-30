@@ -23,6 +23,7 @@ from modules import encryption
 import os
 import sys
 import uuid
+import time
 import httpx
 import random
 import string
@@ -35,6 +36,7 @@ from ably.types.presence import PresenceAction
 
 # Constants
 APP_VERSION = "v0.2.0"
+MAX_REPLAY_WINDOW = 5.0
 SERVER_URL = "https://ghost-protocol.anikethchavare.com/generate-token"
 
 # State & Encryption Keys
@@ -125,9 +127,22 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
             if sender_username != username:
                 if session_key is not None:
                     try:
-                        # Decrypting the Message
-                        raw_payload = b64decode(payload.get("message").encode('utf-8'))
+                        # Decrypting the Message & Extracting Timestamp
+                        raw_payload = b64decode(payload.get("message").encode("utf-8"))
                         decrypted_message = encryption.decrypt_message(key=session_key, nonce=raw_payload[:12], data=raw_payload[12:]).decode("utf-8")
+
+                        timestamp_str = decrypted_message.split(":")[0]
+                        decrypted_message = decrypted_message.split(":")[1]
+
+                        if not timestamp_str or not decrypted_message:
+                            print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Received malformed message payload.{Style.RESET_ALL}")
+                            return
+
+                        if abs(time.time() - float(timestamp_str)) > MAX_REPLAY_WINDOW:
+                            print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Rejected message from {sender_username} due to replay.{Style.RESET_ALL}")
+                            if is_app_ready:
+                                print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}", end="", flush=True)
+                            return
 
                         print(f"\r\033[K{Fore.CYAN}[{sender_username}@{sender_id.split('-')[4]}]: {Fore.WHITE}{decrypted_message}{Style.RESET_ALL}")
                         if is_app_ready:
@@ -196,7 +211,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
             if session_key is not None:
                 # Encrypting the Message
                 nonce = os.urandom(12)
-                encrypted_message = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=message_text.encode("utf-8"))).decode("utf-8")
+                encrypted_message = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=f"{str(time.time())}:{message_text}".encode("utf-8"))).decode("utf-8")
             else:
                 print(f"{Fore.RED}[!] TRANSMISSION FAILURE: Cryptographic handshake is not established.{Style.RESET_ALL}")
                 continue
