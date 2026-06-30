@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/Cryptography-000000?style=for-the-badge&logo=gitpod&logoColor=white" alt="Cryptography">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/Terminal-4EAA25?style=for-the-badge&logo=gnumetallink&logoColor=white" alt="Terminal">
     <br><br>
-    <img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge&logo=github&logoColor=white" alt="Version">&nbsp;&nbsp;
+    <img src="https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge&logo=github&logoColor=white" alt="Version">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge&logo=apache&logoColor=white" alt="Apache 2.0 License">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/maintained-yes-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Maintenance: Active">
 </div>

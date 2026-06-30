@@ -16,7 +16,7 @@ The format will be:
 - Performance
 - Documentation
 
-## [Unreleased]
+## [0.2.0] - 2026-06-30
 
 ### Changed
 - Modified the alert message when a user leaves a room.
@@ -46,4 +46,5 @@ The format will be:
 - Finished the `README.md` file.
 
 ---
+[0.2.0]: https://github.com/anikethchavare/ghost-protocol-client/releases/tag/v0.2.0
 [0.1.0]: https://github.com/anikethchavare/ghost-protocol-client/releases/tag/v0.1.0

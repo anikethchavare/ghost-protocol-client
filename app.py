@@ -226,7 +226,7 @@ async def main():
 
     # Displaying Initial Messages
     print(f"{Fore.GREEN}{Style.BRIGHT}=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ==={Style.RESET_ALL}")
-    print(f"{Style.DIM}Status: CLEAR // Protocol: Ghost-E2EE // Version: v0.1.0{Style.RESET_ALL}")
+    print(f"{Style.DIM}Status: CLEAR // Protocol: Ghost-E2EE // Version: v0.2.0{Style.RESET_ALL}")
     print(f"{Fore.RED}[!] WARNING: Do not use for production or highly sensitive data.{Style.RESET_ALL}")
 
     # Prompting User for Username & Room ID
