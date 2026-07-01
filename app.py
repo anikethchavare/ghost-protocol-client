@@ -106,20 +106,36 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
             new_member_client_id = payload.get("client_id")
 
             if new_member_client_id != channel.ably.options.client_id:
-                # Encrypting Session Key & Sending it to New Member
-                handshake_nonce = os.urandom(12)
-                encrypted_session_key = encryption.encrypt_message(
-                    key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(b64decode(payload.get("public_key"))))),
-                    nonce=handshake_nonce,
-                    data=session_key
-                )
 
-                # Channel Publish (key_delivery): Sending Session Key to New Member
-                asyncio.create_task(channel.publish(f"key_delivery:{new_member_client_id}", {
-                    "sender_public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8"),
-                    "nonce": b64encode(handshake_nonce).decode('utf-8'),
-                    "encrypted_session_key": b64encode(encrypted_session_key).decode('utf-8')
-                }))
+                # Nested Async Function 1: Process Key Delivery
+                async def process_key_delivery():
+                    presence_members = await channel.presence.get()
+                    active_client_ids = [member.client_id for member in presence_members if member.client_id != new_member_client_id]
+
+                    if not active_client_ids:
+                        return
+
+                    active_client_ids.sort()
+                    elected_host_id = active_client_ids[0]
+
+                    if channel.ably.options.client_id == elected_host_id:
+                        # Encrypting Session Key & Sending it to New Member
+                        handshake_nonce = os.urandom(12)
+                        encrypted_session_key = encryption.encrypt_message(
+                            key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(b64decode(payload.get("public_key"))))),
+                            nonce=handshake_nonce,
+                            data=session_key
+                        )
+
+                        # Channel Publish (key_delivery): Sending Session Key to New Member
+                        await channel.publish(f"key_delivery:{new_member_client_id}", {
+                            "sender_public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8"),
+                            "nonce": b64encode(handshake_nonce).decode('utf-8'),
+                            "encrypted_session_key": b64encode(encrypted_session_key).decode('utf-8')
+                        })
+
+                # Executing the Key Delivery Process Asynchronously
+                asyncio.create_task(process_key_delivery())
         elif message.name == "message":
             payload = message.data
 

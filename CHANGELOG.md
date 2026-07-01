@@ -35,6 +35,7 @@ The format will be:
 
 ### Performance
 - Utilized `orjson` instead of `json` for loading and dumping JSON.
+- Optimized key delivery by introducing deterministic host election to resolve network race conditions during the cryptographic handshake.
 
 ### Documentation
 - Updated the content of the `README.md` file with the new build instructions.
