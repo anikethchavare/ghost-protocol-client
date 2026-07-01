@@ -36,7 +36,7 @@ from ably import AblyRealtime
 from ably.types.presence import PresenceAction
 
 # Constants
-APP_VERSION = "v0.2.0"
+APP_VERSION = "v1.0.0"
 MAX_REPLAY_WINDOW = 5.0
 SERVER_URL = "https://ghost-protocol.anikethchavare.com/generate-token"
 
@@ -225,7 +225,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
     """
 
     global last_event_was_presence
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     while True:
         try:
@@ -281,7 +281,7 @@ async def main():
     # Displaying Initial Messages
     print(f"{Fore.GREEN}{Style.BRIGHT}=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ==={Style.RESET_ALL}")
     print(f"{Style.DIM}Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}{Style.RESET_ALL}")
-    print(f"{Fore.RED}[!] WARNING: Do not use for production or highly sensitive data.{Style.RESET_ALL}")
+    print(f"{Fore.RED}[!] WARNING: Provided 'as is' without warranty. Use at your own risk.{Style.RESET_ALL}")
 
     # Prompting User for Username & Room ID
     username = input(f"\n{Fore.CYAN}USERNAME: {Fore.WHITE}").strip(); print(Style.RESET_ALL, end="")

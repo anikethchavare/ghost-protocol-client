@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/Cryptography-000000?style=for-the-badge&logo=gitpod&logoColor=white" alt="Cryptography">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/Terminal-4EAA25?style=for-the-badge&logo=gnumetallink&logoColor=white" alt="Terminal">
     <br><br>
-    <img src="https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge&logo=github&logoColor=white" alt="Version">&nbsp;&nbsp;
+    <img src="https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge&logo=github&logoColor=white" alt="Version">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge&logo=apache&logoColor=white" alt="Apache 2.0 License">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/maintained-yes-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Maintenance: Active">
 </div>
@@ -34,7 +34,7 @@ This lightweight CLI script serves as the interactive frontend interface for the
 2. **Anti-Replay Protection:** Reinforces message payloads with strict temporal verification windows to entirely mitigate packet interception and replay attacks.
 3. **Randomized Client Identities:** Hardened against user tracking and session spoofing by leveraging completely unpredictable `UUIDv4` identifiers for runtime identity generation instead of deterministic values.
 4. **Real-Time Mesh Pub/Sub:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently.
-5. **Dynamic Key Rotation & Host Election:** Employs a custom host election protocol using active room presence rosters to eliminate handshake race conditions. Automatically triggers a secure key rotation to generate and distribute a new session key whenever a member joins or leaves the room, guaranteeing strict Forward Secrecy.
+5. **Dynamic Key Rotation & Host Election:** Employs a custom host election protocol using active room presence rosters to eliminate handshake race conditions. Automatically triggers a secure key rotation to generate and distribute a new session key whenever a member joins or leaves the room, guaranteeing strict **Forward and Backward Secrecy**.
 6. **Asynchronous UX Loop:** Engineered entirely around `asyncio` events, wrapping standard blocking input routines with an executor loop so messages flow inbound smoothly without locking your input stream.
 7. **Dynamic Terminal UI:** Enhanced with `colorama` ANSI styling formatting to visually segment message streams, system connection alerts, and server-side room presence activities seamlessly inside your shell.
 8. **Token Auth Integration:** Seamlessly talks to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions.
