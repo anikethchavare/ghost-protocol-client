@@ -32,7 +32,6 @@ This release is a highly functional demonstration of asynchronous E2EE communica
 
 ### Known Limitations (Fixes slated for v1.0.0):
 1. **No Forward Secrecy:** Room session keys are static per session lifecycle and do not rotate when members leave or join.
-2. **Insecure Roster Validation:** Username uniqueness and channel presence validation are handled entirely on the client side. A secure deployment must offload roster validation to a trusted backend authority to prevent spoofing. 
 
 *Do not use this version to transmit highly sensitive information or real production secrets.*
 
@@ -47,7 +46,7 @@ This lightweight CLI script serves as the interactive frontend interface for the
 3. **Real-Time Mesh Pub/Sub & Host Election:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently. Includes a deterministic host election protocol using active room presence rosters to eliminate handshake race conditions during session key delivery.
 4. **Asynchronous UX Loop:** Engineered entirely around `asyncio` events, wrapping standard blocking input routines with an executor loop so messages flow inbound smoothly without locking your input stream.
 5. **Dynamic Terminal UI:** Enhanced with `colorama` ANSI styling formatting to visually segment message streams, system connection alerts, and server-side room presence activities seamlessly inside your shell.
-6. **Token Auth Integration:** Seamlessly talks back to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions.
+6. **Token Auth Integration & Server-Side Validation:** Seamlessly talks back to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions, while automatically offloading room existence and username uniqueness checks to a trusted backend authority to eliminate spoofing vulnerabilities.
 
 <hr>
 
