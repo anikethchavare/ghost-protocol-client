@@ -32,8 +32,7 @@ This release is a highly functional demonstration of asynchronous E2EE communica
 
 ### Known Limitations (Fixes slated for v1.0.0):
 1. **No Forward Secrecy:** Room session keys are static per session lifecycle and do not rotate when members leave or join.
-2. **Replay Attacks:** Message payloads currently lack temporal validations like sequence numbers or expiration timestamps.
-3. **Handshake Race Conditions:** Multiple active peers will simultaneously attempt to fulfill a newcomer's session key request.
+2. **Insecure Roster Validation:** Username uniqueness and channel presence validation are handled entirely on the client side. A secure deployment must offload roster validation to a trusted backend authority to prevent spoofing. 
 
 *Do not use this version to transmit highly sensitive information or real production secrets.*
 
