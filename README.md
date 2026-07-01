@@ -26,18 +26,7 @@
 
 <hr>
 
-## 1. ⚠️ Important Status: Unstable Release (v0.1.0)
-
-This release is a highly functional demonstration of asynchronous E2EE communication over a real-time pub/sub network. It is **not** currently audited or hardened for production environments.
-
-### Known Limitations (Fixes slated for v1.0.0):
-1. **No Forward Secrecy:** Room session keys are static per session lifecycle and do not rotate when members leave or join.
-
-*Do not use this version to transmit highly sensitive information or real production secrets.*
-
-<hr>
-
-## 2. 🛠️ Features & Tech Stack
+## 1. 🛠️ Features & Tech Stack
 
 This lightweight CLI script serves as the interactive frontend interface for the **Ghost Protocol** room-based chat application.
 
@@ -45,7 +34,7 @@ This lightweight CLI script serves as the interactive frontend interface for the
 2. **Anti-Replay Protection:** Reinforces message payloads with strict temporal verification windows to entirely mitigate packet interception and replay attacks.
 3. **Randomized Client Identities:** Hardened against user tracking and session spoofing by leveraging completely unpredictable `UUIDv4` identifiers for runtime identity generation instead of deterministic values.
 4. **Real-Time Mesh Pub/Sub:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently.
-5. **Deterministic Host Election:** Employs a custom host election protocol using active room presence rosters to eliminate handshake race conditions during session key delivery.
+5. **Dynamic Key Rotation & Host Election:** Employs a custom host election protocol using active room presence rosters to eliminate handshake race conditions. Automatically triggers a secure key rotation to generate and distribute a new session key whenever a member joins or leaves the room, guaranteeing strict Forward Secrecy.
 6. **Asynchronous UX Loop:** Engineered entirely around `asyncio` events, wrapping standard blocking input routines with an executor loop so messages flow inbound smoothly without locking your input stream.
 7. **Dynamic Terminal UI:** Enhanced with `colorama` ANSI styling formatting to visually segment message streams, system connection alerts, and server-side room presence activities seamlessly inside your shell.
 8. **Token Auth Integration:** Seamlessly talks to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions.
@@ -53,7 +42,7 @@ This lightweight CLI script serves as the interactive frontend interface for the
 
 <hr>
 
-## 3. 🚦 Getting Started
+## 2. 🚦 Getting Started
 
 You can run **Ghost Protocol** either as a compiled standalone executable or directly via the raw Python source code.
 
@@ -96,7 +85,7 @@ Ensure you have **Python 3.10+** installed on your machine.
 
 <hr>
 
-## 4. 📜 License & Changelog
+## 3. 📜 License & Changelog
 
 This project is licensed under the **[Apache License 2.0](https://github.com/anikethchavare/ghost-protocol-client/blob/main/LICENSE.txt)**. You are free to use, modify, and distribute this software for both commercial and non-commercial purposes, provided original copyright notices and attributions are retained.
 
@@ -104,13 +93,13 @@ Track all notable changes, migrations, and bug fixes in the **[CHANGELOG.md](htt
 
 <hr>
 
-## 5. 🤝 Credits & Acknowledgements
+## 4. 🤝 Credits & Acknowledgements
 
 This project is made possible by the incredible work of the open-source cryptography and real-time networking communities. A comprehensive list of project client dependencies and their respective licenses is available in **[CREDITS.md](https://github.com/anikethchavare/ghost-protocol-client/blob/main/CREDITS.md)**.
 
 <hr>
 
-## 6. 💎 Become a Sponsor
+## 5. 💎 Become a Sponsor
 
 **Ghost Protocol** is built and maintained entirely for open-source privacy and security architecture research. If this utility helps power your personal network experiments or inspires your cryptographic terminal interfaces, please consider supporting its continuous development.
 
@@ -126,7 +115,7 @@ Your sponsorship helps offset the overhead of running live end-to-end sandbox ch
 
 <hr>
 
-## 7. ✨ Conclusion
+## 6. ✨ Conclusion
 
 Thank you for exploring **Ghost Protocol (Client)**. Whether you want to tinker with the terminal layout or implement your own custom session key rotation mechanisms, feel free to fork the repository.
 

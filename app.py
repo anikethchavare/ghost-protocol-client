@@ -62,7 +62,7 @@ async def presence_handler(channel, username: str, short_client_id: str):
         short_client_id (String): The last part of the client's ID (UUID v4).
     """
 
-    # Nested Function 1: Presence Listener
+    # Nested Async Function 1: Presence Listener
     async def presence_listener(member):
         global last_event_was_presence, session_key
         sender_id = member.client_id
@@ -70,7 +70,7 @@ async def presence_handler(channel, username: str, short_client_id: str):
         sender_data = member.data
         sender_username = sender_data.get("username") if isinstance(sender_data, dict) else sender_data
 
-        # Async Nested Function 1: Process Key Rotation
+        # Nested-2 Async Function 1: Process Key Rotation
         async def process_key_rotation():
             global session_key, is_app_ready
 
@@ -270,6 +270,8 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
 
 # Async Function 4: Main
 async def main():
+    """ The main function to be executed. """
+
     global session_key, is_app_ready
     room_id = None
 
