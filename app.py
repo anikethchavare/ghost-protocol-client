@@ -300,10 +300,27 @@ async def main():
     async def get_token_request(*args, **kwargs):
         async with httpx.AsyncClient() as request_client:
             try:
-                response = await request_client.post(SERVER_URL, json={"client_id": client_id, "room_id": room_id})
-                response.raise_for_status()
+                response = await request_client.post(
+                    SERVER_URL,
+                    json={
+                        "client_id": client_id,
+                        "room_id": room_id,
+                        "username": username,
+                        "action": room_decision
+                    }
+                )
 
+                if response.status_code == 404:
+                    print(f"\n{Fore.RED}[!] ACCESS DENIED: Room ID does not exist.{Style.RESET_ALL}")
+                    sys.exit(1)
+                elif response.status_code == 409:
+                    print(f"\n{Fore.RED}[!] ACCESS DENIED: Username taken by another member.{Style.RESET_ALL}")
+                    sys.exit(1)
+
+                response.raise_for_status()
                 return response.json()
+            except SystemExit:
+                raise
             except Exception as e:
                 print(f"\n{Fore.RED}[!] TOKEN AUTHENTICATION ERROR: {e}{Style.RESET_ALL}")
                 raise e
@@ -326,20 +343,6 @@ async def main():
             # Setting the Presence Handler
             presence_task = asyncio.create_task(presence_handler(channel, username, client_id.split("-")[4]))
             await asyncio.sleep(0.1)
-
-            # Fetching the Roster of Current Members
-            presence_members = await channel.presence.get()
-
-            # Checking if Room Exists
-            if room_decision == "join":
-                if not presence_members:
-                    print(f"\n{Fore.RED}[!] ACCESS DENIED: Room ID does not exist.{Style.RESET_ALL}")
-                    return
-
-            # Checking if Username is Taken
-            if any(member.data == username for member in presence_members):
-                print(f"\n{Fore.RED}[!] ACCESS DENIED: Username taken by another member.{Style.RESET_ALL}")
-                return
 
             # Setting the Receive Messages Handler
             receive_task = asyncio.create_task(receive_messages_handler(channel, username, client_id.split("-")[4]))
