@@ -45,6 +45,7 @@ is_app_ready = False
 last_event_was_presence = True
 
 session_key = None
+session_key_ready = asyncio.Event()
 local_public_key, local_private_key = encryption.generate_key_pair()
 
 # Initializing Colorama
@@ -62,10 +63,64 @@ async def presence_handler(channel, username: str, short_client_id: str):
     """
 
     # Nested Function 1: Presence Listener
-    def presence_listener(member):
-        global last_event_was_presence
+    async def presence_listener(member):
+        global last_event_was_presence, session_key
         sender_id = member.client_id
-        sender_username = member.data
+
+        sender_data = member.data
+        sender_username = sender_data.get("username") if isinstance(sender_data, dict) else sender_data
+
+        # Async Nested Function 1: Process Key Rotation
+        async def process_key_rotation():
+            global session_key, is_app_ready
+
+            presence_payload = await channel.presence.get()
+            presence_members = getattr(presence_payload, 'items', presence_payload)
+            active_client_ids = sorted([m.client_id for m in presence_members])
+
+            if not active_client_ids:
+                return False
+
+            # Setting a Host
+            elected_host_id = active_client_ids[0]
+
+            if channel.ably.options.client_id == elected_host_id:
+                # Generating a New Session Key
+                session_key = encryption.generate_key(length=256)
+                session_key_ready.set()
+
+                if not is_app_ready:
+                    print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Session key securely established.{Style.RESET_ALL}")
+
+                for active_member in presence_members:
+                    if active_member.client_id == channel.ably.options.client_id:
+                        continue
+
+                    active_member_data = active_member.data
+
+                    if not isinstance(active_member_data, dict) or "public_key" not in active_member_data:
+                        continue
+
+                    # Encrypting the New Session Key
+                    handshake_nonce = os.urandom(12)
+                    encrypted_new_key = encryption.encrypt_message(
+                        key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(public_key_bytes=b64decode(active_member_data.get("public_key"))))),
+                        nonce=handshake_nonce,
+                        data=session_key
+                    )
+
+                    # Channel Publish (key_delivery): Sending New Session Key to Each Member
+                    await channel.publish(f"key_delivery:{active_member.client_id}", {
+                        "sender_public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8"),
+                        "nonce": b64encode(handshake_nonce).decode('utf-8'),
+                        "encrypted_session_key": b64encode(encrypted_new_key).decode('utf-8')
+                    })
+
+                return True
+
+            return False
+
+        await process_key_rotation()
 
         if sender_id == channel.ably.options.client_id:
             return
@@ -101,42 +156,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
     def listener(message):
         global last_event_was_presence, session_key
 
-        if message.name == "key_request" and session_key is not None:
-            payload = message.data
-            new_member_client_id = payload.get("client_id")
-
-            if new_member_client_id != channel.ably.options.client_id:
-
-                # Nested Async Function 1: Process Key Delivery
-                async def process_key_delivery():
-                    presence_members = await channel.presence.get()
-                    active_client_ids = [member.client_id for member in presence_members if member.client_id != new_member_client_id]
-
-                    if not active_client_ids:
-                        return
-
-                    active_client_ids.sort()
-                    elected_host_id = active_client_ids[0]
-
-                    if channel.ably.options.client_id == elected_host_id:
-                        # Encrypting Session Key & Sending it to New Member
-                        handshake_nonce = os.urandom(12)
-                        encrypted_session_key = encryption.encrypt_message(
-                            key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(b64decode(payload.get("public_key"))))),
-                            nonce=handshake_nonce,
-                            data=session_key
-                        )
-
-                        # Channel Publish (key_delivery): Sending Session Key to New Member
-                        await channel.publish(f"key_delivery:{new_member_client_id}", {
-                            "sender_public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8"),
-                            "nonce": b64encode(handshake_nonce).decode('utf-8'),
-                            "encrypted_session_key": b64encode(encrypted_session_key).decode('utf-8')
-                        })
-
-                # Executing the Key Delivery Process Asynchronously
-                asyncio.create_task(process_key_delivery())
-        elif message.name == "message":
+        if message.name == "message":
             payload = message.data
 
             if session_key is not None:
@@ -176,11 +196,9 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
 
     # Nested Function 2: Delivery Listener (Derives Session Key)
     def delivery_listener(message):
-        global session_key
+        global session_key, session_key_ready
 
-        if session_key is not None:
-            return
-
+        # Decrypting the Session Key
         payload = message.data
         session_key = encryption.decrypt_message(
             key=encryption.generate_wrapper_key(shared_secret=local_private_key.exchange(encryption.derive_public_key(b64decode(payload.get("sender_public_key"))))),
@@ -188,9 +206,10 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
             data=b64decode(payload.get("encrypted_session_key"))
         )
 
-        print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Session key securely established.{Style.RESET_ALL}")
-        if is_app_ready:
-            print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Style.RESET_ALL}", end="", flush=True)
+        session_key_ready.set()
+
+        if not is_app_ready:
+            print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Session key securely established.{Style.RESET_ALL}")
 
     await channel.subscribe(f"key_delivery:{channel.ably.options.client_id}", delivery_listener)
 
@@ -280,6 +299,7 @@ async def main():
         print(f"\n{Style.DIM}ROOM ID: {room_id}{Style.RESET_ALL}")
 
         session_key = encryption.generate_key(length=256)
+        session_key_ready.set()
     elif room_decision == "join":
         room_id = input(f"{Fore.CYAN}ROOM ID: {Fore.WHITE}").strip(); print(Style.RESET_ALL, end="")
         print()
@@ -346,19 +366,20 @@ async def main():
 
             # Setting the Receive Messages Handler
             receive_task = asyncio.create_task(receive_messages_handler(channel, username, client_id.split("-")[4]))
-
             await asyncio.sleep(0.2)
-            await channel.presence.enter_client(client_id, username)
 
-            # Initializing the Cryptographic Handshake
-            if room_decision == "join":
-                # Channel Publish (key_request): Requesting Members for Session Key
-                await channel.publish("key_request", {
-                    "client_id": client_id,
-                    "public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8")
-                })
+            # Sharing Presence Data When Joining a Room
+            await channel.presence.enter_client(client_id, {
+                "username": username,
+                "public_key": b64encode(local_public_key.public_bytes_raw()).decode("utf-8")
+            })
 
             # Displaying Connection Messages
+            if room_decision == "join":
+                await session_key_ready.wait()
+            else:
+                await asyncio.sleep(0.1)
+
             print(f"\n{Fore.BLACK}{Back.GREEN}[+] CONNECTION ESTABLISHED SECURELY // ENCRYPTION ACTIVE{Style.RESET_ALL}")
             print(f"{Style.DIM}Type your message or execute '/exit' to terminate connection.{Style.RESET_ALL}")
             print()
@@ -368,7 +389,7 @@ async def main():
 
             # Setting the Send Messages Handler
             send_task = asyncio.create_task(send_messages_handler(channel, username, client_id.split("-")[4]))
-            await send_task
+            await asyncio.gather(presence_task, receive_task, send_task)
         except KeyboardInterrupt:
             print(f"\n{Fore.RED}[!] SIGNAL INTERRUPTED BY USER{Style.RESET_ALL}")
         finally:
@@ -402,8 +423,10 @@ async def main():
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except (Exception, KeyboardInterrupt, asyncio.CancelledError):
-        print(f"\n\n{Fore.RED}[!] EXECUTION ABORTED{Style.RESET_ALL}")
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        pass
+    except Exception as e:
+        print(f"\n\n{Fore.RED}[!] EXECUTION ABORTED: {e}{Style.RESET_ALL}")
     finally:
         input(f"\nProcess finished. Press ENTER to close the terminal.{Style.RESET_ALL}")
         sys.exit(0)

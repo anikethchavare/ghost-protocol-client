@@ -30,6 +30,7 @@ The format will be:
 - Mitigated replay attacks across chat sessions by embedding and validating an encrypted temporal context timestamp on all messages.
 - Hardened metadata privacy by encrypting the full JSON payload (message, username, and client ID) as a single broadcast block.
 - Migrated room validation and username conflict checks from client-side presence logic to server-side authentication within the token generation request.
+- Implemented a secure key rotation mechanism that automatically generates and distributes a new session key whenever a member joins or leaves the room to ensure strict **Forward Secrecy**.
 
 ### Refactored
 - Modularized the codebase by decoupling core cryptography and terminal utilities into dedicated modules for improved readability and maintenance.
