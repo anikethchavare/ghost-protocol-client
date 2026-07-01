@@ -43,9 +43,9 @@ This release is a highly functional demonstration of asynchronous E2EE communica
 
 This lightweight CLI script serves as the interactive frontend interface for the **Ghost Protocol** room-based chat application.
 
-1. **End-to-End Encryption & Secure Identity:** Uses modern, industry-standard cryptographic primitives featuring `X25519` for peer-to-peer key handshakes, `HKDF` for ephemeral key derivation, and `AES-256-GCM` for authenticated data packet encryption.
+1. **End-to-End Encryption & Anti-Replay Protection:** Uses modern, industry-standard cryptographic primitives featuring `X25519` for peer-to-peer key handshakes, `HKDF` for ephemeral key derivation, and `AES-256-GCM` for authenticated data packet encryption. Payloads are reinforced with strict temporal verification windows to entirely mitigate message replay attacks.
 2. **Randomized Client Identities:** Hardened against user tracking and session spoofing by leveraging completely unpredictable `UUIDv4` identifiers for runtime identity generation instead of deterministic values.
-3. **Real-Time Mesh Pub/Sub:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently.
+3. **Real-Time Mesh Pub/Sub & Host Election:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently. Includes a deterministic host election protocol using active room presence rosters to eliminate handshake race conditions during session key delivery.
 4. **Asynchronous UX Loop:** Engineered entirely around `asyncio` events, wrapping standard blocking input routines with an executor loop so messages flow inbound smoothly without locking your input stream.
 5. **Dynamic Terminal UI:** Enhanced with `colorama` ANSI styling formatting to visually segment message streams, system connection alerts, and server-side room presence activities seamlessly inside your shell.
 6. **Token Auth Integration:** Seamlessly talks back to the central `ghost-protocol-server` architecture via `httpx` to dynamically trade cryptographic credentials for ephemeral, capability-scoped server permissions.

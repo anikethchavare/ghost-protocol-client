@@ -38,7 +38,7 @@ The format will be:
 - Optimized key delivery by introducing deterministic host election to resolve network race conditions during the cryptographic handshake.
 
 ### Documentation
-- Updated the content of the `README.md` file with the new build instructions.
+- Updated the content of the `README.md` file with new build instructions and features.
 
 ## [0.2.0] - 2026-06-30
 
