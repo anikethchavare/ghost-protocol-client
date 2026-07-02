@@ -16,6 +16,13 @@ The format will be:
 - Performance
 - Documentation
 
+## [Unrelease]
+
+### Refactored
+- Extracted authentication handling from `app.py` into a dedicated `network.py` module containing a stateless `get_token_request` function.
+- Created a `ui.py` module and introduced a `display_error` function to decouple terminal presentation formatting from core operational handlers.
+- Cleaned up the `app.py` architecture by initializing the Ably client natively within an asynchronous context manager using a streamlined lambda authentication callback.
+
 ## [1.0.0] - 2026-07-01
 
 ### Added

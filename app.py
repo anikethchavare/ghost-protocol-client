@@ -17,14 +17,12 @@ limitations under the License.
 """
 
 # Imports
-from modules import utils
-from modules import encryption
+from modules import utils, network, encryption
 
 import os
 import sys
 import uuid
 import time
-import httpx
 import orjson
 import random
 import string
@@ -38,7 +36,6 @@ from ably.types.presence import PresenceAction
 # Constants
 APP_VERSION = "v1.0.0"
 MAX_REPLAY_WINDOW = 5.0
-SERVER_URL = "https://ghost-protocol.anikethchavare.com/generate-token"
 
 # State & Encryption Keys
 is_app_ready = False
@@ -318,37 +315,10 @@ async def main():
     print(f"{Style.DIM}CLIENT ID: {client_id}{Style.RESET_ALL}")
     print(f"\n{Fore.YELLOW}[*] Requesting authentication token and establishing connection...{Style.RESET_ALL}")
 
-    # Nested Async Function 1: Get Token Request
-    async def get_token_request(*args, **kwargs):
-        async with httpx.AsyncClient() as request_client:
-            try:
-                response = await request_client.post(
-                    SERVER_URL,
-                    json={
-                        "client_id": client_id,
-                        "room_id": room_id,
-                        "username": username,
-                        "action": room_decision
-                    }
-                )
-
-                if response.status_code == 404:
-                    print(f"\n{Fore.RED}[!] ACCESS DENIED: Room ID does not exist.{Style.RESET_ALL}")
-                    sys.exit(1)
-                elif response.status_code == 409:
-                    print(f"\n{Fore.RED}[!] ACCESS DENIED: Username taken by another member.{Style.RESET_ALL}")
-                    sys.exit(1)
-
-                response.raise_for_status()
-                return response.json()
-            except SystemExit:
-                raise
-            except Exception as e:
-                print(f"\n{Fore.RED}[!] TOKEN AUTHENTICATION ERROR: {e}{Style.RESET_ALL}")
-                raise e
-
     # Initializing Ably via AblyRealtime
-    async with AblyRealtime(auth_callback=get_token_request, client_id=client_id) as client:
+    ably_auth_callback = lambda _: network.get_token_request(client_id=client_id, room_id=room_id, username=username, room_decision=room_decision)
+
+    async with AblyRealtime(auth_callback=ably_auth_callback, client_id=client_id) as client:
         await client.connection.once_async("connected")
 
         # Mapping Channel Name to the Capability Filter
@@ -395,27 +365,18 @@ async def main():
         except KeyboardInterrupt:
             print(f"\n{Fore.RED}[!] SIGNAL INTERRUPTED BY USER{Style.RESET_ALL}")
         finally:
-            if presence_task:
-                presence_task.cancel()
+            for task in [presence_task, receive_task, send_task]:
+                if task:
+                    if task in [presence_task, receive_task]:
+                        task.cancel()
 
-                try:
-                    await presence_task
-                except asyncio.CancelledError:
-                    pass
-
-            if receive_task:
-                receive_task.cancel()
-
-                try:
-                    await receive_task
-                except asyncio.CancelledError:
-                    pass
-
-            if send_task:
-                try:
-                    await channel.presence.leave_client(client_id)
-                except Exception:
-                    pass
+                    try:
+                        if send_task:
+                            await channel.presence.leave_client(client_id)
+                        else:
+                            await task
+                    except (Exception, asyncio.CancelledError):
+                        pass
 
                 # Displaying Connection Termination Messages
                 print(f"\n\n\n\033[A\r\033[K{Fore.YELLOW}[*] Terminating active session in room {room_id}...{Style.RESET_ALL}")
