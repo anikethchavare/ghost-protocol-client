@@ -10,5 +10,6 @@ organizations behind these projects.
 2. [httpx](https://github.com/encode/httpx) v0.28.1 - License: [BSD-3-Clause](https://github.com/encode/httpx/blob/master/LICENSE.md)
 3. [orjson](https://github.com/ijl/orjson) v3.11.9 - License: [MIT](https://github.com/ijl/orjson/blob/master/LICENSE-MIT)
 4. [colorama](https://github.com/tartley/colorama) v0.4.6 - License: [BSD-3-Clause](https://github.com/tartley/colorama/blob/master/LICENSE.txt)
-5. [pyinstaller](https://github.com/pyinstaller/pyinstaller) v6.21.0 - License: [GNU General Public](https://github.com/pyinstaller/pyinstaller?tab=License-1-ov-file)
-6. [cryptography](https://github.com/pyca/cryptography) v49.0.0 - License: [Apache 2.0](https://github.com/pyca/cryptography/blob/main/LICENSE.APACHE)
+5. [PyWinCtl](https://github.com/Kalmat/PyWinCtl) v0.4.1 - License: [Custom](https://github.com/Kalmat/PyWinCtl/blob/master/LICENSE.txt)
+6. [pyinstaller](https://github.com/pyinstaller/pyinstaller) v6.21.0 - License: [GNU General Public](https://github.com/pyinstaller/pyinstaller?tab=License-1-ov-file)
+7. [cryptography](https://github.com/pyca/cryptography) v49.0.0 - License: [Apache 2.0](https://github.com/pyca/cryptography/blob/main/LICENSE.APACHE)

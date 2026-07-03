@@ -2,5 +2,6 @@ ably==3.1.2
 httpx==0.28.1
 orjson==3.11.9
 colorama==0.4.6
+PyWinCtl==0.4.1
 pyinstaller==6.21.0
 cryptography==49.0.0

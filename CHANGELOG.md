@@ -21,6 +21,9 @@ The format will be:
 ### Added
 - Maximizes the terminal size upon application initialization.
 
+### Changed
+- **Dependency Changes:** Added `PyWinCtl`.
+
 ### Refactored
 - Created a dedicated `network.py` module to handle network and API requests.
 - Created a dedicated `ui.py` module to handle terminal input and messages.
