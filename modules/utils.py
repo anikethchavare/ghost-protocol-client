@@ -21,7 +21,7 @@ import os
 import sys
 
 # Function 1: Set Terminal Title
-def set_terminal_title(app_version: str):
+def set_terminal_title(app_version: str) -> None:
     """
     Sets the title of the terminal window.
 

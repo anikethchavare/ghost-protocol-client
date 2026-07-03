@@ -17,18 +17,115 @@ limitations under the License.
 """
 
 # Imports
-from colorama import Fore, Style
+from colorama import init, Back, Fore, Style
 
-# Function 1: Display Error
-def display_error(message: str, prefix_newline: bool = False):
+# Initializing Colorama
+init()
+
+# Function 1: Display Message
+def display_message(
+        message: str,
+        color: str,
+        background: str = None,
+        bright: bool = False,
+        dim: bool = False,
+        prefix: str = "",
+        suffix: str = ""
+) -> None:
     """
-    Displays an error message.
+    Displays a message.
 
     Args:
         message (String): The message to be displayed.
-        prefix_newline (Boolean): Whether to display the newline character.
+        color (String): The color of the message.
+        background (String): The background color of the message.
+        bright (Boolean): Whether the message needs to be bright.
+        dim (Boolean): Whether the message needs to be dim.
+        prefix (String): The custom prefix to be added to the message.
+        suffix (String): The custom suffix to be added to the message.
     """
 
-    prefix = "\n" if prefix_newline else ""
+    # Color Variables
+    background_colors = {
+        "green": Back.GREEN,
+        "red": Back.RED
+    }
 
-    print(f"{prefix}{Fore.RED}{message}{Style.RESET_ALL}")
+    colors = {
+        "red": Fore.RED,
+        "yellow": Fore.YELLOW,
+        "black": Fore.BLACK,
+        "green": Fore.GREEN,
+        "white": Fore.WHITE
+    }
+
+    # Displaying the Message
+    background = background_colors[background] if background is not None else ""
+    bright = Style.BRIGHT if bright else ""
+    dim = Style.DIM if dim else ""
+    print(f"{prefix}{colors[color]}{background}{bright}{dim}{message}{Style.RESET_ALL}{suffix}")
+
+# Function 2: Display Prompt
+def display_prompt(message: str, color: str, prefix: str = ""):
+    """
+    Displays an 'input' prompt.
+
+    Args:
+        message (String): The message to be displayed.
+        color (String): The color of the message.
+        prefix (String): The custom prefix to be added to the message.
+    """
+
+    # Color Variable
+    colors = {
+        "red": Fore.RED,
+        "yellow": Fore.YELLOW,
+        "black": Fore.BLACK,
+        "green": Fore.GREEN,
+        "white": Fore.WHITE,
+        "cyan": Fore.CYAN
+    }
+
+    return input(f"{prefix}{colors[color]}{message}{Fore.WHITE}").strip()
+
+# Function 3: Display Message Text
+def display_message_text(
+        username: str,
+        short_client_id: str,
+        message: str = "",
+        type: str = "",
+        only_text: bool = False
+) -> str | None:
+    """
+    Displays incoming and outgoing messages.
+
+    Args:
+        username (String): The username to be displayed.
+        short_client_id (String): The short client ID to be displayed.
+        message (String): The message to be displayed.
+        type (String): The type of message ('incoming' or 'outgoing').
+        only_text (Boolean): Whether to return only the raw text.
+    """
+
+    # Displaying the Message Text
+    prefix = "\r\033[K" if type == "incoming" else "\033[A\r\033[K"
+    color = Fore.CYAN if type == "incoming" else Fore.GREEN
+
+    if only_text:
+        return f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}"
+    else:
+        print(f"{prefix}{color}[{username}@{short_client_id}]: {Fore.WHITE}{message}{Style.RESET_ALL}")
+        return None
+
+# Function 4: Display Message Prompt
+def display_message_prompt(username: str, short_client_id: str) -> None:
+    """
+    Displays a message prompt.
+
+    Args:
+        username (String): The username to be displayed.
+        short_client_id (String): The short client ID to be displayed.
+    """
+
+    # Displaying the Message Prompt
+    print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Style.RESET_ALL}", end="", flush=True)

@@ -52,10 +52,10 @@ async def get_token_request(client_id: str, room_id: str, username: str, room_de
             )
 
             if response.status_code == 404:
-                ui.display_error(message="[!] ACCESS DENIED: Room ID does not exist.", prefix_newline=True)
+                ui.display_message(message="[!] ACCESS DENIED: Room ID does not exist.", color="red", prefix="\n")
                 sys.exit(1)
             elif response.status_code == 409:
-                ui.display_error(message="[!] ACCESS DENIED: Username taken by another member.", prefix_newline=True)
+                ui.display_message(message="[!] ACCESS DENIED: Username taken by another member.", color="red", prefix="\n")
                 sys.exit(1)
 
             response.raise_for_status()
@@ -63,5 +63,5 @@ async def get_token_request(client_id: str, room_id: str, username: str, room_de
         except SystemExit:
             raise
         except Exception as e:
-            ui.display_error(message=f"[!] TOKEN AUTHENTICATION ERROR: {e}", prefix_newline=True)
+            ui.display_message(message=f"[!] TOKEN AUTHENTICATION ERROR: {e}", color="red", prefix="\n")
             raise e

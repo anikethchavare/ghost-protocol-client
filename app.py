@@ -17,7 +17,7 @@ limitations under the License.
 """
 
 # Imports
-from modules import utils, network, encryption
+from modules import ui, utils, network, encryption
 
 import os
 import sys
@@ -28,7 +28,6 @@ import random
 import string
 import asyncio
 from base64 import b64encode, b64decode
-from colorama import init, Fore, Back, Style
 
 from ably import AblyRealtime
 from ably.types.presence import PresenceAction
@@ -44,9 +43,6 @@ last_event_was_presence = True
 session_key = None
 session_key_ready = asyncio.Event()
 local_public_key, local_private_key = encryption.generate_key_pair()
-
-# Initializing Colorama
-init()
 
 # Async Function 1: Presence Handler
 async def presence_handler(channel, username: str, short_client_id: str):
@@ -87,7 +83,7 @@ async def presence_handler(channel, username: str, short_client_id: str):
                 session_key_ready.set()
 
                 if not is_app_ready:
-                    print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Session key securely established.{Style.RESET_ALL}")
+                    ui.display_message(message="[*] Cryptographic Handshake: Session key securely established.", color="yellow", prefix="\r\033[K")
 
                 for active_member in presence_members:
                     if active_member.client_id == channel.ably.options.client_id:
@@ -126,13 +122,13 @@ async def presence_handler(channel, username: str, short_client_id: str):
 
         # Displays Message According to Action
         if member.action == PresenceAction.ENTER:
-            print(f"{prefix}{Fore.YELLOW}[*] MEMBER JOINED: {sender_username}@{sender_id.split('-')[4]} has entered the room.{Style.RESET_ALL}\n")
+            ui.display_message(message=f"[*] MEMBER JOINED: {sender_username}@{sender_id.split('-')[4]} has entered the room.", color="yellow", prefix=prefix, suffix="\n")
             if is_app_ready:
-                print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Style.RESET_ALL}", end="", flush=True)
+                ui.display_message_prompt(username=username, short_client_id=short_client_id)
         elif member.action in [PresenceAction.LEAVE, PresenceAction.ABSENT]:
-            print(f"{prefix}{Fore.RED}[*] MEMBER LEFT: {sender_username}@{sender_id.split('-')[4]} has left the room.{Style.RESET_ALL}\n")
+            ui.display_message(message=f"[*] MEMBER LEFT: {sender_username}@{sender_id.split('-')[4]} has left the room.", color="red", prefix=prefix, suffix="\n")
             if is_app_ready:
-                print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Style.RESET_ALL}", end="", flush=True)
+                ui.display_message_prompt(username=username, short_client_id=short_client_id)
 
         last_event_was_presence = True
 
@@ -170,24 +166,24 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                         return
 
                     if not timestamp_str or not decrypted_message:
-                        print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Received malformed message payload.{Style.RESET_ALL}")
+                        ui.display_message(message="[!] SECURITY ALERT: Received malformed message payload.", color="red", prefix="\r\033[K")
                         return
 
                     if abs(time.time() - float(timestamp_str)) > MAX_REPLAY_WINDOW:
-                        print(f"\r\033[K{Fore.RED}[!] SECURITY ALERT: Rejected message from {sender_username} due to replay.{Style.RESET_ALL}")
+                        ui.display_message(message=f"[!] SECURITY ALERT: Rejected message from {sender_username} due to replay.", color="red", prefix="\r\033[K")
                         if is_app_ready:
-                            print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}", end="", flush=True)
+                            ui.display_message_prompt(username=username, short_client_id=short_client_id)
                         return
 
-                    print(f"\r\033[K{Fore.CYAN}[{sender_username}@{decrypted_payload.get("client_id").split('-')[4]}]: {Fore.WHITE}{decrypted_message}{Style.RESET_ALL}")
+                    ui.display_message_text(username=username, short_client_id=decrypted_payload.get("client_id").split('-')[4], message=decrypted_message, type="incoming")
                     if is_app_ready:
-                        print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}", end="", flush=True)
+                        ui.display_message_prompt(username=username, short_client_id=short_client_id)
 
                     last_event_was_presence = False
                 except Exception:
-                    print(f"\r\033[K{Fore.RED}[!] ENCRYPTION FAILURE: Failed to decrypt incoming payload.{Style.RESET_ALL}")
+                    ui.display_message(message="[!] ENCRYPTION FAILURE: Failed to decrypt incoming payload.", color="red", prefix="\r\033[K")
             else:
-                print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Awaiting session key verification...{Style.RESET_ALL}")
+                ui.display_message(message="[*] Cryptographic Handshake: Awaiting session key verification...", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(listener)
 
@@ -206,7 +202,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
         session_key_ready.set()
 
         if not is_app_ready:
-            print(f"\r\033[K{Fore.YELLOW}[*] Cryptographic Handshake: Session key securely established.{Style.RESET_ALL}")
+            ui.display_message(message="[*] Cryptographic Handshake: Session key securely established.", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(f"key_delivery:{channel.ably.options.client_id}", delivery_listener)
 
@@ -226,7 +222,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
 
     while True:
         try:
-            message_text = await loop.run_in_executor(None, input,f"{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{Style.RESET_ALL}")
+            message_text = await loop.run_in_executor(None, input,ui.display_message_text(username=username, short_client_id=short_client_id, only_text=True))
         except (asyncio.CancelledError, KeyboardInterrupt):
             break
 
@@ -239,7 +235,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
             break
 
         try:
-            print(f"\033[A\r\033[K{Fore.GREEN}[{username}@{short_client_id}]: {Fore.WHITE}{message_text}{Style.RESET_ALL}")
+            ui.display_message_text(username=username, short_client_id=short_client_id, message=message_text, type="outgoing")
             last_event_was_presence = False
 
             if session_key is not None:
@@ -255,7 +251,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
                 nonce = os.urandom(12)
                 encrypted_payload = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=payload)).decode("utf-8")
             else:
-                print(f"{Fore.RED}[!] TRANSMISSION FAILURE: Cryptographic handshake is not established.{Style.RESET_ALL}")
+                ui.display_message(message="[!] TRANSMISSION FAILURE: Cryptographic handshake is not established.", color="red")
                 continue
 
             # Channel Publish (message): Sending Encrypted Payload
@@ -263,7 +259,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
                 "encrypted_payload": encrypted_payload
             })
         except Exception as e:
-            print(f"\n{Fore.RED}[!] TRANSMISSION FAILURE: {e}")
+            ui.display_message(message=f"[!] TRANSMISSION FAILURE: {e}", color="red", prefix="\n")
 
 # Async Function 4: Main
 async def main():
@@ -276,49 +272,50 @@ async def main():
     utils.set_terminal_title(APP_VERSION)
 
     # Displaying Initial Messages
-    print(f"{Fore.GREEN}{Style.BRIGHT}=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ==={Style.RESET_ALL}")
-    print(f"{Style.DIM}Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}{Style.RESET_ALL}")
-    print(f"{Fore.RED}[!] WARNING: Provided 'as is' without warranty. Use at your own risk.{Style.RESET_ALL}")
+    ui.display_message(message="=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ===", color="green", bright=True)
+    ui.display_message(message=f"Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}", color="white", dim=True)
+    ui.display_message(message="[!] WARNING: Provided 'as is' without warranty. Use at your own risk.", color="red")
 
     # Prompting User for Username & Room ID
-    username = input(f"\n{Fore.CYAN}USERNAME: {Fore.WHITE}").strip(); print(Style.RESET_ALL, end="")
+    username = ui.display_prompt(message="USERNAME: ", color="cyan", prefix="\n")
 
     if not username:
-        print(f"\n{Fore.RED}[!] ACCESS DENIED: Username cannot be empty.{Style.RESET_ALL}")
+        ui.display_message(message="[!] ACCESS DENIED: Username cannot be empty.", color="red", prefix="\n")
         return
 
-    room_decision = input(f"{Fore.CYAN}CREATE OR JOIN ROOM: {Fore.WHITE}").strip().lower(); print(Style.RESET_ALL, end="")
+    room_decision = ui.display_prompt(message="CREATE OR JOIN ROOM: ", color="cyan").lower()
 
     if not room_decision or room_decision not in ["create", "join"]:
-        print(f"\n{Fore.RED}[!] ACCESS DENIED: Enter a valid input ('create' or 'join').{Style.RESET_ALL}")
+        ui.display_message(message="[!] ACCESS DENIED: Enter a valid input ('create' or 'join').", color="red", prefix="\n")
         return
 
     if room_decision == "create":
         room_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-        print(f"\n{Style.DIM}ROOM ID: {room_id}{Style.RESET_ALL}")
+        ui.display_message(message=f"ROOM ID: {room_id}", color="white", dim=True, prefix="\n")
 
         session_key = encryption.generate_key(length=256)
         session_key_ready.set()
     elif room_decision == "join":
-        room_id = input(f"{Fore.CYAN}ROOM ID: {Fore.WHITE}").strip(); print(Style.RESET_ALL, end="")
+        room_id = ui.display_prompt(message="ROOM ID: ", color="cyan")
         print()
 
     if not room_id or len(room_id) != 8:
-        print(f"{Fore.RED}[!] ACCESS DENIED: Room ID is required and must be exactly 8 characters.{Style.RESET_ALL}")
+        ui.display_message(message="[!] ACCESS DENIED: Room ID is required and must be exactly 8 characters.", color="red")
         return
 
     # Generating the Client ID (UUID v4)
     username = username.replace(" ", "-")
     client_id = str(uuid.uuid4())
 
-    print(f"{Style.DIM}SHORT CLIENT ID: {client_id.split('-')[4]}{Style.RESET_ALL}")
-    print(f"{Style.DIM}CLIENT ID: {client_id}{Style.RESET_ALL}")
-    print(f"\n{Fore.YELLOW}[*] Requesting authentication token and establishing connection...{Style.RESET_ALL}")
+    ui.display_message(message=f"SHORT CLIENT ID: {client_id.split('-')[4]}", color="white", dim=True)
+    ui.display_message(message=f"CLIENT ID: {client_id}", color="white", dim=True)
+    ui.display_message(message="[*] Requesting authentication token and establishing connection...", color="yellow", prefix="\n")
 
     # Initializing Ably via AblyRealtime
-    ably_auth_callback = lambda _: network.get_token_request(client_id=client_id, room_id=room_id, username=username, room_decision=room_decision)
-
-    async with AblyRealtime(auth_callback=ably_auth_callback, client_id=client_id) as client:
+    async with AblyRealtime(
+        auth_callback=lambda _: network.get_token_request(client_id=client_id, room_id=room_id, username=username, room_decision=room_decision),
+        client_id=client_id
+    ) as client:
         await client.connection.once_async("connected")
 
         # Mapping Channel Name to the Capability Filter
@@ -352,8 +349,8 @@ async def main():
             else:
                 await asyncio.sleep(0.1)
 
-            print(f"\n{Fore.BLACK}{Back.GREEN}[+] CONNECTION ESTABLISHED SECURELY // ENCRYPTION ACTIVE{Style.RESET_ALL}")
-            print(f"{Style.DIM}Type your message or execute '/exit' to terminate connection.{Style.RESET_ALL}")
+            ui.display_message(message="[+] CONNECTION ESTABLISHED SECURELY // ENCRYPTION ACTIVE", color="black", background="green", prefix="\n")
+            ui.display_message(message="Type your message or execute '/exit' to terminate connection.", color="white", dim=True)
             print()
 
             # Signaling the App is Ready
@@ -363,7 +360,7 @@ async def main():
             send_task = asyncio.create_task(send_messages_handler(channel, username, client_id.split("-")[4]))
             await asyncio.gather(presence_task, receive_task, send_task)
         except KeyboardInterrupt:
-            print(f"\n{Fore.RED}[!] SIGNAL INTERRUPTED BY USER{Style.RESET_ALL}")
+            ui.display_message(message="[!] SIGNAL INTERRUPTED BY USER", color="red", prefix="\n")
         finally:
             for task in [presence_task, receive_task, send_task]:
                 if task:
@@ -378,9 +375,9 @@ async def main():
                     except (Exception, asyncio.CancelledError):
                         pass
 
-                # Displaying Connection Termination Messages
-                print(f"\n\n\n\033[A\r\033[K{Fore.YELLOW}[*] Terminating active session in room {room_id}...{Style.RESET_ALL}")
-                print(f"\n{Fore.BLACK}{Back.RED}[!] SECURE CONNECTION TERMINATED{Style.RESET_ALL}")
+            # Displaying Connection Termination Messages
+            ui.display_message(message=f"[*] Terminating active session in room {room_id}...", color="yellow", prefix="\n\n\n\033[A\r\033[K")
+            ui.display_message(message="[!] SECURE CONNECTION TERMINATED", color="black", background="red", prefix="\n")
 
 # Running the Application
 if __name__ == "__main__":
@@ -389,7 +386,7 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, asyncio.CancelledError):
         pass
     except Exception as e:
-        print(f"\n\n{Fore.RED}[!] EXECUTION ABORTED: {e}{Style.RESET_ALL}")
+        ui.display_message(message=f"[!] EXECUTION ABORTED: {e}", color="red", prefix="\n\n")
     finally:
-        input(f"\nProcess finished. Press ENTER to close the terminal.{Style.RESET_ALL}")
+        input(f"\nProcess finished. Press ENTER to close the terminal.")
         sys.exit(0)
