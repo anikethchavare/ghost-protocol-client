@@ -21,11 +21,8 @@ from modules import ui, utils, network, encryption
 
 import os
 import sys
-import uuid
 import time
 import orjson
-import random
-import string
 import asyncio
 from base64 import b64encode, b64decode
 
@@ -33,7 +30,6 @@ from ably import AblyRealtime
 from ably.types.presence import PresenceAction
 
 # Constants
-APP_VERSION = "v1.0.0"
 MAX_REPLAY_WINDOW = 5.0
 
 # State & Encryption Keys
@@ -175,7 +171,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                             ui.display_message_prompt(username=username, short_client_id=short_client_id)
                         return
 
-                    ui.display_message_text(username=username, short_client_id=decrypted_payload.get("client_id").split('-')[4], message=decrypted_message, type="incoming")
+                    ui.display_message_text(username=sender_username, short_client_id=decrypted_payload.get("client_id").split('-')[4], message=decrypted_message, type="incoming")
                     if is_app_ready:
                         ui.display_message_prompt(username=username, short_client_id=short_client_id)
 
@@ -268,48 +264,13 @@ async def main():
     global session_key, is_app_ready
     room_id = None
 
-    # Set the Custom Terminal Title
-    utils.set_terminal_title(APP_VERSION)
+    # Initial Setup of Terminal
+    utils.set_terminal_title()
 
-    # Displaying Initial Messages
-    ui.display_message(message="=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ===", color="green", bright=True)
-    ui.display_message(message=f"Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}", color="white", dim=True)
-    ui.display_message(message="[!] WARNING: Provided 'as is' without warranty. Use at your own risk.", color="red")
+    if not (onboarding_data := utils.initiate_onboarding(session_key_ready)):
+        return None
 
-    # Prompting User for Username & Room ID
-    username = ui.display_prompt(message="USERNAME: ", color="cyan", prefix="\n")
-
-    if not username:
-        ui.display_message(message="[!] ACCESS DENIED: Username cannot be empty.", color="red", prefix="\n")
-        return
-
-    room_decision = ui.display_prompt(message="CREATE OR JOIN ROOM: ", color="cyan").lower()
-
-    if not room_decision or room_decision not in ["create", "join"]:
-        ui.display_message(message="[!] ACCESS DENIED: Enter a valid input ('create' or 'join').", color="red", prefix="\n")
-        return
-
-    if room_decision == "create":
-        room_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-        ui.display_message(message=f"ROOM ID: {room_id}", color="white", dim=True, prefix="\n")
-
-        session_key = encryption.generate_key(length=256)
-        session_key_ready.set()
-    elif room_decision == "join":
-        room_id = ui.display_prompt(message="ROOM ID: ", color="cyan")
-        print()
-
-    if not room_id or len(room_id) != 8:
-        ui.display_message(message="[!] ACCESS DENIED: Room ID is required and must be exactly 8 characters.", color="red")
-        return
-
-    # Generating the Client ID (UUID v4)
-    username = username.replace(" ", "-")
-    client_id = str(uuid.uuid4())
-
-    ui.display_message(message=f"SHORT CLIENT ID: {client_id.split('-')[4]}", color="white", dim=True)
-    ui.display_message(message=f"CLIENT ID: {client_id}", color="white", dim=True)
-    ui.display_message(message="[*] Requesting authentication token and establishing connection...", color="yellow", prefix="\n")
+    username, room_decision, room_id, session_key, client_id = onboarding_data
 
     # Initializing Ably via AblyRealtime
     async with AblyRealtime(

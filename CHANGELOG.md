@@ -19,8 +19,9 @@ The format will be:
 ## [Unrelease]
 
 ### Refactored
-- Created the `network.py` module to handle network and API requests.
-- Created the `ui.py` module to handle terminal inputs and messages.
+- Created a dedicated `network.py` module to handle network and API requests.
+- Created a dedicated `ui.py` module to handle terminal inputs and messages.
+- Updated the `utils.py` module with the `initiate_onboarding` function to retrieve initial user input and return client information.
 - Initializes the Ably client natively within an asynchronous context manager using a streamlined lambda authentication callback.
 
 ## [1.0.0] - 2026-07-01
