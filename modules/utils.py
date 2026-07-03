@@ -24,6 +24,7 @@ import sys
 import uuid
 import string
 import random
+import pywinctl
 
 # Constants
 APP_VERSION = "v1.0.0"
@@ -37,7 +38,16 @@ def set_terminal_title() -> None:
     else:
         print(f"\033]0;Ghost Protocol {APP_VERSION}\a", end="", flush=True)
 
-# Function 2: Initiate Onboarding
+# Function 2: Maximize Terminal
+def maximize_terminal() -> None:
+    """ Expands the terminal window size to the maximum. """
+
+    active_window = pywinctl.getActiveWindow()
+
+    if active_window:
+        active_window.maximize()
+
+# Function 3: Initiate Onboarding
 def initiate_onboarding(session_key_ready):
     """
     Initiates the onboarding process for the member.

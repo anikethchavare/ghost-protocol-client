@@ -16,11 +16,14 @@ The format will be:
 - Performance
 - Documentation
 
-## [Unrelease]
+## [Unreleased]
+
+### Added
+- Maximizes the terminal size upon application initialization.
 
 ### Refactored
 - Created a dedicated `network.py` module to handle network and API requests.
-- Created a dedicated `ui.py` module to handle terminal inputs and messages.
+- Created a dedicated `ui.py` module to handle terminal input and messages.
 - Updated the `utils.py` module with the `initiate_onboarding` function to retrieve initial user input and return client information.
 - Initializes the Ably client natively within an asynchronous context manager using a streamlined lambda authentication callback.
 

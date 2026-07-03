@@ -266,6 +266,7 @@ async def main():
 
     # Initial Setup of Terminal
     utils.set_terminal_title()
+    utils.maximize_terminal()
 
     if not (onboarding_data := utils.initiate_onboarding(session_key_ready)):
         return None
