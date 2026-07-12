@@ -3,7 +3,7 @@
 
 <br>
 
-<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/b848b2aa-5c0a-43ff-b35e-d9dff691a687"></div>
+<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/ecc64436-b97b-4c9a-9564-c8c5e10a50f5"></div>
 
 <br>
 
@@ -48,7 +48,7 @@ You can run **Ghost Protocol** either as a compiled standalone executable or dir
 
 ### 📦 Option A: Compiled Executable (Recommended for Quick Run)
 
-We provide a standalone executable configuration pre-compiled for easy execution without needing a local Python environment setup.
+A standalone executable file is provided for easy execution without needing a local Python environment setup.
 
 1. **Locate the Executable:** Open the root directory of the project and navigate to the `/dist` folder.
 2. **Execute:** Double-click `ghost-protocol.exe` (on Windows) or execute it via your shell to launch the application instantly.

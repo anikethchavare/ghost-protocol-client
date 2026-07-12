@@ -79,7 +79,7 @@ async def presence_handler(channel, username: str, short_client_id: str):
                 session_key_ready.set()
 
                 if not is_app_ready:
-                    ui.display_message(message="[*] Cryptographic Handshake: Session key securely established.", color="yellow", prefix="\r\033[K")
+                    ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Session key securely established.", color="yellow", prefix="\r\033[K")
 
                 for active_member in presence_members:
                     if active_member.client_id == channel.ably.options.client_id:
@@ -179,7 +179,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                 except Exception:
                     ui.display_message(message="[!] ENCRYPTION FAILURE: Failed to decrypt incoming payload.", color="red", prefix="\r\033[K")
             else:
-                ui.display_message(message="[*] Cryptographic Handshake: Awaiting session key verification...", color="yellow", prefix="\r\033[K")
+                ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Awaiting session key verification...", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(listener)
 
@@ -198,7 +198,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
         session_key_ready.set()
 
         if not is_app_ready:
-            ui.display_message(message="[*] Cryptographic Handshake: Session key securely established.", color="yellow", prefix="\r\033[K")
+            ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Session key securely established.", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(f"key_delivery:{channel.ably.options.client_id}", delivery_listener)
 

@@ -32,6 +32,7 @@ The format will be:
 
 ### Documentation
 - Enhanced docstrings for all functions.
+- Corrected the version and terminal text in the main image of the `README.md` file.
 
 ## [1.0.0] - 2026-07-01
 
