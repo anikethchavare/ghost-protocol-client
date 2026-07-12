@@ -24,6 +24,9 @@ The format will be:
 ### Changed
 - **Dependency Changes:** Added `PyWinCtl`.
 
+### Removed
+- Deleted redundant PNG files of the icons.
+
 ### Refactored
 - Created a dedicated `network.py` module to handle network and API requests.
 - Created a dedicated `ui.py` module to handle terminal input and messages.
