@@ -24,6 +24,9 @@ The format will be:
 ### Changed
 - **Dependency Changes:** Added `PyWinCtl`.
 
+### Fixed
+- Added a stabilization delay of 500 milliseconds after a "presence" event to ensure a correct roster list.
+
 ### Removed
 - Deleted redundant PNG files of the icons.
 

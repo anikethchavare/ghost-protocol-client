@@ -51,13 +51,19 @@ async def presence_handler(channel, username: str, short_client_id: str):
         short_client_id (String): The last part of the client's ID (UUID v4).
     """
 
+    rotation_task = None
+
     # Nested Async Function 1: Presence Listener
     async def presence_listener(member):
         global last_event_was_presence, session_key
+        nonlocal rotation_task
         sender_id = member.client_id
 
         sender_data = member.data
         sender_username = sender_data.get("username") if isinstance(sender_data, dict) else sender_data
+
+        if rotation_task and not rotation_task.done():
+            rotation_task.cancel()
 
         # Nested-2 Async Function 1: Process Key Rotation
         async def process_key_rotation():
@@ -109,7 +115,15 @@ async def presence_handler(channel, username: str, short_client_id: str):
 
             return False
 
-        await process_key_rotation()
+        # Nested-2 Async Function 2: Debounced Rotation
+        async def debounced_rotation():
+            try:
+                await asyncio.sleep(0.5)
+                await process_key_rotation()
+            except asyncio.CancelledError:
+                pass
+
+        rotation_task = asyncio.create_task(debounced_rotation())
 
         if sender_id == channel.ably.options.client_id:
             return
