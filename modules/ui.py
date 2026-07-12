@@ -31,7 +31,7 @@ def display_message(
         dim: bool = False,
         prefix: str = "",
         suffix: str = ""
-) -> None:
+):
     """
     Displays a message.
 
@@ -74,6 +74,8 @@ def display_prompt(message: str, color: str, prefix: str = ""):
         message (String): The message to be displayed.
         color (String): The color of the message.
         prefix (String): The custom prefix to be added to the message.
+
+    Returns: An input prompt.
     """
 
     # Color Variable
@@ -105,6 +107,8 @@ def display_message_text(
         message (String): The message to be displayed.
         type (String): The type of message ('incoming' or 'outgoing').
         only_text (Boolean): Whether to return only the raw text.
+
+    Returns: The message text if "only_text" is set to True.
     """
 
     # Displaying the Message Text

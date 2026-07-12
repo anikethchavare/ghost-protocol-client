@@ -103,6 +103,8 @@ def derive_public_key(public_key_bytes: bytes):
 
     Args:
         public_key_bytes (Bytes): The bytes of the X25519 public key.
+
+    Returns: The public key in X25519 format.
     """
 
     return x25519.X25519PublicKey.from_public_bytes(public_key_bytes)

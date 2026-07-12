@@ -30,7 +30,7 @@ import pywinctl
 APP_VERSION = "v1.0.0"
 
 # Function 1: Set Terminal Title
-def set_terminal_title() -> None:
+def set_terminal_title():
     """ Sets the title of the terminal window. """
 
     if sys.platform.startswith("win"):
@@ -39,7 +39,7 @@ def set_terminal_title() -> None:
         print(f"\033]0;Ghost Protocol {APP_VERSION}\a", end="", flush=True)
 
 # Function 2: Maximize Terminal
-def maximize_terminal() -> None:
+def maximize_terminal():
     """ Expands the terminal window size to the maximum. """
 
     active_window = pywinctl.getActiveWindow()
@@ -54,6 +54,8 @@ def initiate_onboarding(session_key_ready):
 
     Args:
         session_key_ready (asyncio.Event()): Asynchronous signaling flag whether the session key is ready.
+
+    Returns: A tuple containing client information or "None" if an error occurs.
     """
 
     # Variables

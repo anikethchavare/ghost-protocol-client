@@ -30,6 +30,9 @@ The format will be:
 - Updated the `utils.py` module with the `initiate_onboarding` function to retrieve initial user input and return client information.
 - Initializes the Ably client natively within an asynchronous context manager using a streamlined lambda authentication callback.
 
+### Documentation
+- Enhanced docstrings for all functions.
+
 ## [1.0.0] - 2026-07-01
 
 ### Added
