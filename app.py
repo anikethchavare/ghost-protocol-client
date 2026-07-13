@@ -362,7 +362,10 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, asyncio.CancelledError):
         pass
     except Exception as e:
-        ui.display_message(message=f"[!] EXECUTION ABORTED: {e}", color="red", prefix="\n\n")
+        if str(e).strip():
+            ui.display_message(message=f"[!] EXECUTION ABORTED: {e}", color="red", prefix="\n\n")
+        else:
+            ui.display_message(message=f"[!] EXECUTION ABORTED", color="red", prefix="\n\n")
     finally:
         input(f"\nProcess finished. Press ENTER to close the terminal.")
         sys.exit(0)
