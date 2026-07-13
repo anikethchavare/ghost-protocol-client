@@ -21,7 +21,6 @@ from modules import ui, utils, network, encryption
 
 import os
 import sys
-import time
 import orjson
 import asyncio
 from base64 import b64encode, b64decode
@@ -29,10 +28,9 @@ from base64 import b64encode, b64decode
 from ably import AblyRealtime
 from ably.types.presence import PresenceAction
 
-# Constants
-MAX_REPLAY_WINDOW = 5.0
-
-# State & Encryption Keys
+# State & Encryption Variables
+local_sequence = 0
+peer_sequences = {}
 is_app_ready = False
 last_event_was_presence = True
 
@@ -67,7 +65,7 @@ async def presence_handler(channel, username: str, short_client_id: str):
 
         # Nested-2 Async Function 1: Process Key Rotation
         async def process_key_rotation():
-            global session_key, is_app_ready
+            global session_key, local_sequence, peer_sequences, is_app_ready
 
             presence_payload = await channel.presence.get()
             presence_members = getattr(presence_payload, 'items', presence_payload)
@@ -85,6 +83,10 @@ async def presence_handler(channel, username: str, short_client_id: str):
                 session_key_ready.set()
 
                 if not is_app_ready:
+                    # Resetting Sequences on New Handshake
+                    local_sequence = 0
+                    peer_sequences.clear()
+
                     ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Session key securely established.", color="yellow", prefix="\r\033[K")
 
                 for active_member in presence_members:
@@ -157,7 +159,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
 
     # Nested Function 1: Listener
     def listener(message):
-        global last_event_was_presence, session_key
+        global last_event_was_presence, session_key, peer_sequences
 
         if message.name == "message":
             payload = message.data
@@ -170,22 +172,28 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
 
                     sender_username = decrypted_payload.get("username")
                     decrypted_message = decrypted_payload.get("message")
-                    timestamp_str = decrypted_payload.get("timestamp")
+                    sender_client_id = decrypted_payload.get("client_id")
+                    sender_sequence = decrypted_payload.get("sequence")
+                    expected_sequence = peer_sequences.get(sender_client_id, 0)
 
                     if sender_username == username:
                         return
 
-                    if not timestamp_str or not decrypted_message:
+                    if sender_sequence is None or not decrypted_message:
                         ui.display_message(message="[!] SECURITY ALERT: Received malformed message payload.", color="red", prefix="\r\033[K")
                         return
 
-                    if abs(time.time() - float(timestamp_str)) > MAX_REPLAY_WINDOW:
+                    if sender_sequence < expected_sequence:
                         ui.display_message(message=f"[!] SECURITY ALERT: Rejected message from {sender_username} due to replay.", color="red", prefix="\r\033[K")
                         if is_app_ready:
                             ui.display_message_prompt(username=username, short_client_id=short_client_id)
                         return
 
-                    ui.display_message_text(username=sender_username, short_client_id=decrypted_payload.get("client_id").split('-')[4], message=decrypted_message, type="incoming")
+                    # Update "expected_sequence" to Prevent Future Replays
+                    peer_sequences[sender_client_id] = sender_sequence + 1
+
+                    ui.display_message_text(username=sender_username, short_client_id=sender_client_id.split('-')[4], message=decrypted_message, type="incoming")
+
                     if is_app_ready:
                         ui.display_message_prompt(username=username, short_client_id=short_client_id)
 
@@ -199,7 +207,7 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
 
     # Nested Function 2: Delivery Listener (Derives Session Key)
     def delivery_listener(message):
-        global session_key, session_key_ready
+        global session_key, session_key_ready, local_sequence, peer_sequences
 
         # Decrypting the Session Key
         payload = message.data
@@ -212,6 +220,10 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
         session_key_ready.set()
 
         if not is_app_ready:
+            # Resetting Sequences on New Handshake
+            local_sequence = 0
+            peer_sequences.clear()
+
             ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Session key securely established.", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(f"key_delivery:{channel.ably.options.client_id}", delivery_listener)
@@ -227,7 +239,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
         short_client_id (String): The last part of the client's ID (UUID v4).
     """
 
-    global last_event_was_presence
+    global last_event_was_presence, local_sequence
     loop = asyncio.get_running_loop()
 
     while True:
@@ -251,7 +263,7 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
             if session_key is not None:
                 # Assembling the Payload
                 payload = orjson.dumps({
-                    "timestamp": str(time.time()),
+                    "sequence": local_sequence,
                     "client_id": channel.ably.options.client_id,
                     "username": username,
                     "message": message_text
@@ -260,6 +272,9 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
                 # Encrypting the Data
                 nonce = os.urandom(12)
                 encrypted_payload = b64encode(nonce + encryption.encrypt_message(key=session_key, nonce=nonce, data=payload)).decode("utf-8")
+
+                # Incrementing Sequence
+                local_sequence += 1
             else:
                 ui.display_message(message="[!] TRANSMISSION FAILURE: Cryptographic handshake is not established.", color="red")
                 continue

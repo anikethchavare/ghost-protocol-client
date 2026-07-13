@@ -31,6 +31,9 @@ The format will be:
 ### Removed
 - Deleted redundant PNG files of the icons.
 
+### Security
+- Added a sequential message counter that will be synced during the initial handshake to mitigate against replay attacks.
+
 ### Refactored
 - Created a dedicated `network.py` module to handle network and API requests.
 - Created a dedicated `ui.py` module to handle terminal input and messages.
