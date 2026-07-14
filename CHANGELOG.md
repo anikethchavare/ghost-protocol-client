@@ -23,7 +23,7 @@ The format will be:
 - Implemented strict terminal input security using `prompt_toolkit` to entirely ignore system keyboard shortcuts, preventing accidental application termination.
 
 ### Changed
-- **Dependency Changes:** Added `PyWinCtl`.
+- **Dependency Changes:** Added `PyWinCtl` and `prompt-toolkit`.
 - Updated the code for enhanced stability.
 
 ### Fixed

@@ -5,3 +5,4 @@ colorama==0.4.6
 PyWinCtl==0.4.1
 pyinstaller==6.21.0
 cryptography==49.0.0
+prompt-toolkit==3.0.52

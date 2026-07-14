@@ -13,3 +13,4 @@ organizations behind these projects.
 5. [PyWinCtl](https://github.com/Kalmat/PyWinCtl) v0.4.1 - License: [Custom](https://github.com/Kalmat/PyWinCtl/blob/master/LICENSE.txt)
 6. [pyinstaller](https://github.com/pyinstaller/pyinstaller) v6.21.0 - License: [GNU General Public](https://github.com/pyinstaller/pyinstaller?tab=License-1-ov-file)
 7. [cryptography](https://github.com/pyca/cryptography) v49.0.0 - License: [Apache 2.0](https://github.com/pyca/cryptography/blob/main/LICENSE.APACHE)
+8. [prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit) v3.0.52 - License: [BSD-3-Clause](https://github.com/prompt-toolkit/python-prompt-toolkit/blob/main/LICENSE)
