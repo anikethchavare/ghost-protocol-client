@@ -37,7 +37,7 @@
 This lightweight CLI script serves as the interactive frontend interface for the **Ghost Protocol** room-based chat application.
 
 1. **End-to-End Encryption:** Utilizes modern cryptographic primitives featuring `X25519` for peer-to-peer key handshakes, `HKDF` for ephemeral key derivation, and `AES-256-GCM` for authenticated data packet encryption.
-2. **Anti-Replay Protection:** Reinforces message payloads with strict temporal verification windows to entirely mitigate packet interception and replay attacks.
+2. **Anti-Replay Protection:** Reinforces message payloads with a synchronized sequential counter established during the initial handshake, effectively mitigating packet interception and replay attacks.
 3. **Randomized Client Identities:** Hardened against user tracking and session spoofing by leveraging completely unpredictable `UUIDv4` identifiers for runtime identity generation instead of deterministic values.
 4. **Real-Time Mesh Pub/Sub:** Driven by the [Ably Python SDK](https://github.com/ably/ably-python) to handle multiplexed, low-latency room communication streams concurrently.
 5. **Dynamic Key Rotation & Host Election:** Employs a custom host election protocol using active room presence rosters to eliminate handshake race conditions. Automatically triggers a secure key rotation to generate and distribute a new session key whenever a member joins or leaves the room, guaranteeing strict **Forward and Backward Secrecy**.
