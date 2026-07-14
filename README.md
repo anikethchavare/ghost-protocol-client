@@ -24,6 +24,12 @@
     <img src="https://img.shields.io/badge/maintained-yes-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Maintenance: Active">
 </div>
 
+<br>
+
+<div align="center">
+    🔴 <strong>Warning:</strong> Ghost Protocol is provided "as is" without warranty of any kind. Use at your own risk.
+</div>
+
 <hr>
 
 ## 1. 🛠️ Features & Tech Stack

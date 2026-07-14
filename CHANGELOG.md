@@ -30,6 +30,7 @@ The format will be:
 
 ### Removed
 - Deleted redundant PNG files of the icons.
+- Removed unnecessary messages which were bloating the terminal.
 
 ### Security
 - Added a sequential message counter that will be synced during the initial handshake to mitigate against replay attacks.

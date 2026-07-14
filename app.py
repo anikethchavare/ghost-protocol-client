@@ -87,8 +87,6 @@ async def presence_handler(channel, username: str, short_client_id: str):
                     local_sequence = 0
                     peer_sequences.clear()
 
-                    ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Session key securely established.", color="yellow", prefix="\r\033[K")
-
                 for active_member in presence_members:
                     if active_member.client_id == channel.ably.options.client_id:
                         continue
@@ -200,8 +198,6 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
                     last_event_was_presence = False
                 except Exception:
                     ui.display_message(message="[!] ENCRYPTION FAILURE: Failed to decrypt incoming payload.", color="red", prefix="\r\033[K")
-            else:
-                ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Awaiting session key verification...", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(listener)
 
@@ -223,8 +219,6 @@ async def receive_messages_handler(channel, username: str, short_client_id: str)
             # Resetting Sequences on New Handshake
             local_sequence = 0
             peer_sequences.clear()
-
-            ui.display_message(message="[*] CRYPTOGRAPHIC HANDSHAKE: Session key securely established.", color="yellow", prefix="\r\033[K")
 
     await channel.subscribe(f"key_delivery:{channel.ably.options.client_id}", delivery_listener)
 
@@ -340,7 +334,7 @@ async def main():
             else:
                 await asyncio.sleep(0.1)
 
-            ui.display_message(message="[+] CONNECTION ESTABLISHED SECURELY // ENCRYPTION ACTIVE", color="black", background="green", prefix="\n")
+            ui.display_message(message=f"[+] SECURE CONNECTION ESTABLISHED // ROOM: {room_id} // CLIENT ID: {client_id.split('-')[4]}", color="black", background="green", prefix="\n")
             ui.display_message(message="Type your message or execute '/exit' to terminate connection.", color="white", dim=True)
             print()
 
@@ -366,9 +360,8 @@ async def main():
                     except (Exception, asyncio.CancelledError):
                         pass
 
-            # Displaying Connection Termination Messages
-            ui.display_message(message=f"[*] Terminating active session in room {room_id}...", color="yellow", prefix="\n\n\n\033[A\r\033[K")
-            ui.display_message(message="[!] SECURE CONNECTION TERMINATED", color="black", background="red", prefix="\n")
+            # Displaying the Connection Termination Message
+            ui.display_message(message="[!] SECURE CONNECTION TERMINATED", color="black", background="red", prefix="\n\n\n\033[A\r\033[K")
 
 # Running the Application
 if __name__ == "__main__":

@@ -65,7 +65,6 @@ def initiate_onboarding(session_key_ready):
     # Displaying Initial Messages
     ui.display_message(message="=== GHOST PROTOCOL (SECURE COMMS TERMINAL) ===", color="green", bright=True)
     ui.display_message(message=f"Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}", color="white", dim=True)
-    ui.display_message(message="[!] WARNING: Provided 'as is' without warranty. Use at your own risk.", color="red")
 
     # Prompting User for Username & Room ID
     username = ui.display_prompt(message="USERNAME: ", color="cyan", prefix="\n")
@@ -82,13 +81,11 @@ def initiate_onboarding(session_key_ready):
 
     if room_decision == "create":
         room_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-        ui.display_message(message=f"ROOM ID: {room_id}", color="white", dim=True, prefix="\n")
 
         session_key = encryption.generate_key(length=256)
         session_key_ready.set()
     elif room_decision == "join":
         room_id = ui.display_prompt(message="ROOM ID: ", color="cyan")
-        print()
 
     if not room_id or len(room_id) != 8:
         ui.display_message(message="[!] ACCESS DENIED: Room ID is required and must be exactly 8 characters.", color="red")
@@ -96,10 +93,5 @@ def initiate_onboarding(session_key_ready):
 
     # Generating the Client ID (UUID v4)
     client_id = str(uuid.uuid4())
-
-    # Displaying Client Information
-    ui.display_message(message=f"SHORT CLIENT ID: {client_id.split('-')[4]}", color="white", dim=True)
-    ui.display_message(message=f"CLIENT ID: {client_id}", color="white", dim=True)
-    ui.display_message(message="[*] Requesting authentication token and establishing connection...", color="yellow", prefix="\n")
 
     return username.replace(" ", "-"), room_decision, room_id, session_key, client_id
