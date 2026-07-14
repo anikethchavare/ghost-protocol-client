@@ -24,6 +24,9 @@ import sys
 import orjson
 import asyncio
 from base64 import b64encode, b64decode
+from prompt_toolkit.formatted_text import ANSI
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.shortcuts import PromptSession, prompt
 
 from ably import AblyRealtime
 from ably.types.presence import PresenceAction
@@ -37,6 +40,16 @@ last_event_was_presence = True
 session_key = None
 session_key_ready = asyncio.Event()
 local_public_key, local_private_key = encryption.generate_key_pair()
+
+# Ignoring Keyboard Shortcuts
+keyboard_bindings = KeyBindings()
+
+@keyboard_bindings.add("c-c")
+@keyboard_bindings.add("c-d")
+@keyboard_bindings.add("c-z")
+@keyboard_bindings.add("c-x")
+def _(event):
+    pass
 
 # Async Function 1: Presence Handler
 async def presence_handler(channel, username: str, short_client_id: str):
@@ -234,12 +247,12 @@ async def send_messages_handler(channel, username: str, short_client_id: str):
     """
 
     global last_event_was_presence, local_sequence
-    loop = asyncio.get_running_loop()
+    session = PromptSession(key_bindings=keyboard_bindings)
 
     while True:
         try:
-            message_text = await loop.run_in_executor(None, input,ui.display_message_text(username=username, short_client_id=short_client_id, only_text=True))
-        except (asyncio.CancelledError, KeyboardInterrupt):
+            message_text = await session.prompt_async(ANSI(ui.display_message_text(username=username, short_client_id=short_client_id, only_text=True)))
+        except asyncio.CancelledError:
             break
 
         message_text = message_text.strip()
@@ -291,7 +304,9 @@ async def main():
     utils.set_terminal_title()
     utils.maximize_terminal()
 
-    if not (onboarding_data := utils.initiate_onboarding(session_key_ready)):
+    onboarding_data = await utils.initiate_onboarding(session_key_ready)
+
+    if not onboarding_data:
         return None
 
     username, room_decision, room_id, session_key, client_id = onboarding_data
@@ -344,8 +359,6 @@ async def main():
             # Setting the Send Messages Handler
             send_task = asyncio.create_task(send_messages_handler(channel, username, client_id.split("-")[4]))
             await asyncio.gather(presence_task, receive_task, send_task)
-        except KeyboardInterrupt:
-            ui.display_message(message="[!] SIGNAL INTERRUPTED BY USER", color="red", prefix="\n")
         finally:
             for task in [presence_task, receive_task, send_task]:
                 if task:
@@ -361,13 +374,13 @@ async def main():
                         pass
 
             # Displaying the Connection Termination Message
-            ui.display_message(message="[!] SECURE CONNECTION TERMINATED", color="black", background="red", prefix="\n\n\n\033[A\r\033[K")
+            ui.display_message(message="[!] SECURE CONNECTION TERMINATED", color="black", background="red", prefix="\n\n\033[A\r\033[K")
 
 # Running the Application
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except (KeyboardInterrupt, asyncio.CancelledError):
+    except asyncio.CancelledError:
         pass
     except Exception as e:
         if str(e).strip():
@@ -375,5 +388,5 @@ if __name__ == "__main__":
         else:
             ui.display_message(message=f"[!] EXECUTION ABORTED", color="red", prefix="\n\n")
     finally:
-        input(f"\nProcess finished. Press ENTER to close the terminal.")
+        prompt(f"\nProcess finished. Press ENTER to close the terminal.", key_bindings=keyboard_bindings)
         sys.exit(0)

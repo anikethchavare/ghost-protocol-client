@@ -18,9 +18,22 @@ limitations under the License.
 
 # Imports
 from colorama import init, Back, Fore, Style
+from prompt_toolkit.formatted_text import ANSI
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.shortcuts import PromptSession
 
 # Initializing Colorama
 init()
+
+# Ignoring Keyboard Shortcuts
+keyboard_bindings = KeyBindings()
+
+@keyboard_bindings.add("c-c")
+@keyboard_bindings.add("c-d")
+@keyboard_bindings.add("c-z")
+@keyboard_bindings.add("c-x")
+def _(event):
+    pass
 
 # Function 1: Display Message
 def display_message(
@@ -65,32 +78,7 @@ def display_message(
     dim = Style.DIM if dim else ""
     print(f"{prefix}{colors[color]}{background}{bright}{dim}{message}{Style.RESET_ALL}{suffix}")
 
-# Function 2: Display Prompt
-def display_prompt(message: str, color: str, prefix: str = ""):
-    """
-    Displays an 'input' prompt.
-
-    Args:
-        message (String): The message to be displayed.
-        color (String): The color of the message.
-        prefix (String): The custom prefix to be added to the message.
-
-    Returns: An input prompt.
-    """
-
-    # Color Variable
-    colors = {
-        "red": Fore.RED,
-        "yellow": Fore.YELLOW,
-        "black": Fore.BLACK,
-        "green": Fore.GREEN,
-        "white": Fore.WHITE,
-        "cyan": Fore.CYAN
-    }
-
-    return input(f"{prefix}{colors[color]}{message}{Fore.WHITE}").strip()
-
-# Function 3: Display Message Text
+# Function 2: Display Message Text
 def display_message_text(
         username: str,
         short_client_id: str,
@@ -121,7 +109,7 @@ def display_message_text(
         print(f"{prefix}{color}[{username}@{short_client_id}]: {Fore.WHITE}{message}{Style.RESET_ALL}")
         return None
 
-# Function 4: Display Message Prompt
+# Function 3: Display Message Prompt
 def display_message_prompt(username: str, short_client_id: str) -> None:
     """
     Displays a message prompt.
@@ -133,3 +121,30 @@ def display_message_prompt(username: str, short_client_id: str) -> None:
 
     # Displaying the Message Prompt
     print(f"{Fore.GREEN}[{username}@{short_client_id}]: {Style.RESET_ALL}", end="", flush=True)
+
+# Async Function 1: Display Prompt
+async def display_prompt(message: str, color: str, prefix: str = ""):
+    """
+    Displays an 'input' prompt.
+
+    Args:
+        message (String): The message to be displayed.
+        color (String): The color of the message.
+        prefix (String): The custom prefix to be added to the message.
+
+    Returns: An input prompt.
+    """
+
+    # Color Variable
+    colors = {
+        "red": Fore.RED,
+        "yellow": Fore.YELLOW,
+        "black": Fore.BLACK,
+        "green": Fore.GREEN,
+        "white": Fore.WHITE,
+        "cyan": Fore.CYAN
+    }
+
+    session = PromptSession(key_bindings=keyboard_bindings)
+
+    return (await session.prompt_async(ANSI(f"{prefix}{colors[color]}{message}{Fore.WHITE}"))).strip()

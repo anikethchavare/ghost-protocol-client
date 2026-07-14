@@ -47,8 +47,8 @@ def maximize_terminal():
     if active_window:
         active_window.maximize()
 
-# Function 3: Initiate Onboarding
-def initiate_onboarding(session_key_ready):
+# Async Function 1: Initiate Onboarding
+async def initiate_onboarding(session_key_ready):
     """
     Initiates the onboarding process for the member.
 
@@ -67,13 +67,14 @@ def initiate_onboarding(session_key_ready):
     ui.display_message(message=f"Status: CLEAR // Protocol: Ghost-E2EE // Version: {APP_VERSION}", color="white", dim=True)
 
     # Prompting User for Username & Room ID
-    username = ui.display_prompt(message="USERNAME: ", color="cyan", prefix="\n")
+    username = await ui.display_prompt(message="USERNAME: ", color="cyan", prefix="\n")
 
     if not username:
         ui.display_message(message="[!] ACCESS DENIED: Username cannot be empty.", color="red", prefix="\n")
         return None
 
-    room_decision = ui.display_prompt(message="CREATE OR JOIN ROOM: ", color="cyan").lower()
+    room_decision = await ui.display_prompt(message="CREATE OR JOIN ROOM: ", color="cyan")
+    room_decision = room_decision.lower()
 
     if not room_decision or room_decision not in ["create", "join"]:
         ui.display_message(message="[!] ACCESS DENIED: Enter a valid input ('create' or 'join').", color="red", prefix="\n")
@@ -85,7 +86,7 @@ def initiate_onboarding(session_key_ready):
         session_key = encryption.generate_key(length=256)
         session_key_ready.set()
     elif room_decision == "join":
-        room_id = ui.display_prompt(message="ROOM ID: ", color="cyan")
+        room_id = await ui.display_prompt(message="ROOM ID: ", color="cyan")
 
     if not room_id or len(room_id) != 8:
         ui.display_message(message="[!] ACCESS DENIED: Room ID is required and must be exactly 8 characters.", color="red")

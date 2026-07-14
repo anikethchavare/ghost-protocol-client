@@ -20,6 +20,7 @@ The format will be:
 
 ### Added
 - Maximizes the terminal size upon application initialization.
+- Implemented strict terminal input security using `prompt_toolkit` to entirely ignore system keyboard shortcuts, preventing accidental application termination.
 
 ### Changed
 - **Dependency Changes:** Added `PyWinCtl`.
