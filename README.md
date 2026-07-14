@@ -3,7 +3,7 @@
 
 <br>
 
-<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/ecc64436-b97b-4c9a-9564-c8c5e10a50f5"></div>
+<div align="center"><img width="575" alt="Main Image for README (Terminal)" src="https://github.com/user-attachments/assets/2d7f2d57-8517-4df1-b0d8-0ac0aba032a7"></div>
 
 <br>
 
@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/Cryptography-000000?style=for-the-badge&logo=gitpod&logoColor=white" alt="Cryptography">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/Terminal-4EAA25?style=for-the-badge&logo=gnumetallink&logoColor=white" alt="Terminal">
     <br><br>
-    <img src="https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge&logo=github&logoColor=white" alt="Version">&nbsp;&nbsp;
+    <img src="https://img.shields.io/badge/version-1.1.0-blue?style=for-the-badge&logo=github&logoColor=white" alt="Version">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge&logo=apache&logoColor=white" alt="Apache 2.0 License">&nbsp;&nbsp;
     <img src="https://img.shields.io/badge/maintained-yes-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Maintenance: Active">
 </div>

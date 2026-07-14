@@ -16,7 +16,7 @@ The format will be:
 - Performance
 - Documentation
 
-## [Unreleased]
+## [1.1.0] - 2026-07-14
 
 ### Added
 - Maximizes the terminal size upon application initialization.
@@ -104,6 +104,7 @@ The format will be:
 - Finished the `README.md` file.
 
 ---
+[1.1.0]: https://github.com/anikethchavare/ghost-protocol-client/releases/tag/v1.1.0
 [1.0.0]: https://github.com/anikethchavare/ghost-protocol-client/releases/tag/v1.0.0
 [0.2.0]: https://github.com/anikethchavare/ghost-protocol-client/releases/tag/v0.2.0
 [0.1.0]: https://github.com/anikethchavare/ghost-protocol-client/releases/tag/v0.1.0

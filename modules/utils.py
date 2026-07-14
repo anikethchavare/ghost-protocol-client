@@ -27,7 +27,7 @@ import random
 import pywinctl
 
 # Constants
-APP_VERSION = "v1.0.0"
+APP_VERSION = "v1.1.0"
 
 # Function 1: Set Terminal Title
 def set_terminal_title():
