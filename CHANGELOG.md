@@ -21,6 +21,7 @@ The format will be:
 ### Added
 - Maximizes the terminal size upon application initialization.
 - Implemented strict terminal input security using `prompt_toolkit` to entirely ignore system keyboard shortcuts, preventing accidental application termination.
+- Graceful exit handling when closing the application via the console "X" window button, ensuring cleanup routines and finally clauses execute fully before termination.
 
 ### Changed
 - **Dependency Changes:** Added `PyWinCtl` and `prompt-toolkit`.

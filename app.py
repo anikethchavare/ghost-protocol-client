@@ -21,8 +21,12 @@ from modules import ui, utils, network, encryption
 
 import os
 import sys
+import time
+import signal
+import ctypes
 import orjson
 import asyncio
+from ctypes import wintypes
 from base64 import b64encode, b64decode
 from prompt_toolkit.formatted_text import ANSI
 from prompt_toolkit.key_binding import KeyBindings
@@ -35,6 +39,7 @@ from ably.types.presence import PresenceAction
 local_sequence = 0
 peer_sequences = {}
 is_app_ready = False
+_win_ctrl_handler_ref = None
 last_event_was_presence = True
 
 session_key = None
@@ -73,8 +78,8 @@ async def presence_handler(channel, username: str, short_client_id: str):
         sender_data = member.data
         sender_username = sender_data.get("username") if isinstance(sender_data, dict) else sender_data
 
-        if rotation_task and not rotation_task.done():
-            rotation_task.cancel()
+        if rotation_task and not rotation_task.done(): # type: ignore
+            rotation_task.cancel() # type: ignore
 
         # Nested-2 Async Function 1: Process Key Rotation
         async def process_key_rotation():
@@ -299,6 +304,32 @@ async def main():
 
     global session_key, is_app_ready
     room_id = None
+
+    # Handling the "X" Window Close Button
+    loop = asyncio.get_running_loop()
+    main_task = asyncio.current_task()
+
+    if sys.platform == "win32":
+        phandler_routine = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.DWORD)
+
+        def win_ctrl_handler(ctrl_type):
+            if ctrl_type in (2, 5, 6):
+                loop.call_soon_threadsafe(main_task.cancel) # type: ignore
+                time.sleep(1.5)
+
+                return True
+
+            return False
+
+        global _win_ctrl_handler_ref
+        _win_ctrl_handler_ref = phandler_routine(win_ctrl_handler)
+        ctypes.WinDLL("kernel32").SetConsoleCtrlHandler(_win_ctrl_handler_ref, True)
+    else:
+        for sig in (signal.SIGHUP, signal.SIGTERM):
+            try:
+                loop.add_signal_handler(sig, main_task.cancel) # type: ignore
+            except NotImplementedError:
+                pass
 
     # Initial Setup of Terminal
     utils.set_terminal_title()
